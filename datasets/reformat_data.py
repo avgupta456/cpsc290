@@ -63,20 +63,20 @@ def compute_data_shift(Positions, time, n_people, augment_flipped_data=True):
 
 			ij_frame = shift_indiv_data_standard(people, i, j, time_name, n_people)
 			ij_frames.append(ij_frame)
-			
+
 			if augment_flipped_data:
 			    flipped_frame = augment_frame_standard(ij_frame)
 			    flipped_frames.append(flipped_frame)
-	
+
 	if augment_flipped_data:
             shifted_coordinates = np.concatenate((ij_frames, flipped_frames), axis=0)
 	else:
 	    shifted_coordinates = ij_frames
 	return shifted_coordinates
-	
+
 # 	if augment_flipped_data:
 # 		shifted_coordinates = np.concatenate(shifted_coordinates, flipped_frames)
-# 
+#
 # 	return shifted_coordinates
 	# if len(Shifted_Coordinates) == 0:
 # 		Shifted_Coordinates = ij_frames
@@ -90,19 +90,13 @@ def compute_data_shift(Positions, time, n_people, augment_flipped_data=True):
 ##  each row is the coordinates at time:i:j:orientation, and contains the adjusted features (angles to sin and cos for instance) centered at people i and j
 def shift_all_data_standard(Positions, Groups_at_time, n_people, dataset):
 	print('standard shifting')
-	Shifted_Coordinates = []
 
-	np.savetxt('../datasets/' + dataset + '/coordinates.txt', Shifted_Coordinates, fmt = '%s')
+	np.savetxt('../datasets/' + dataset + '/coordinates.txt', [], fmt = '%s')
 	f = open('../datasets/' + dataset + '/coordinates.txt', 'ab')
 	for time in Groups_at_time:
 		frame_shifted_coordinates = compute_data_shift(Positions, time, n_people, augment_flipped_data=True)
-		Shifted_Coordinates = np.concatenate(Shifted_Coordinates = frame_shifted_coordinates)
-
-		np.savetxt(f,Shifted_Coordinates, fmt='%s')
-		Shifted_Coordinates = []
+		np.savetxt(f, np.atleast_2d(frame_shifted_coordinates), fmt='%s')
 	f.close()
-
-	return Shifted_Coordinates
 
 # Positions = matrix with row of form ID001 feature1, feature2, ..., ID002, feature1, ...
 # Groups_at_time = dictionary from time to array of group arrays
@@ -160,7 +154,7 @@ def shift_all_data_nonstandard(Positions, Groups_at_time, n_people, n_features, 
 			Shifted_Coordinates = ij_frames
 		else:
 			Shifted_Coordinates = np.concatenate((Shifted_Coordinates, ij_frames), axis = 0)
-		
+
 		Shifted_Coordinates = np.concatenate((Shifted_Coordinates, flipped_frames), axis = 0)
 
 		np.savetxt(f,Shifted_Coordinates, fmt='%s')
@@ -254,5 +248,3 @@ if __name__ == "__main__":
 	np.savetxt('../datasets/' + dataset + '/affinities.txt', affinites, fmt = '%s')
 	print("Coordinates (features) file saved")
 	print("file generation of reformatted data done. ready for build_dataset.py")
-
-
