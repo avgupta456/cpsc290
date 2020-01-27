@@ -34,10 +34,8 @@ def build_X(people_lines, max_people, d, convert_units=False):
 
     for i in range(num_examples):
         line = people_lines[i]
-        if type(line) == str:
-	    split = line.split()
-	else:
-	    split = line
+        if type(line) == str: split = line.split()
+        else: split = line
         timestamp = split[0]
 
         # Build X
@@ -164,13 +162,13 @@ def repeat_people(people_lines, num_add):
 def augment_synthetic(X_group, X_pairs, Y, max_people, d):
     path = "Synth"
     people_file = open(os.path.join(path, 'coordinates.txt'), 'r')
-        
+
     people_lines = people_file.readlines()
 
     # hack for salsa
     if 'SALSA' in args.path:
         people_lines = repeat_people(people_lines, 2)
-    
+
     convert_units = ("ocktail" not in args.path and "SALSA" not in args.path and "FM" not in args.path)
     X_group_aug, X_pairs_aug = build_X(people_lines, max_people, d, convert_units=convert_units)
 
@@ -204,7 +202,7 @@ if __name__ == "__main__":
         d = 6 # uses both head and body orientations
     else:
         d = 4
-        
+
     people_lines = people_file.readlines()
 
     # hack for salsa to get synth
@@ -299,6 +297,3 @@ if __name__ == "__main__":
         dump(temp_path + '/test.p', ([X_group_test, X_pairs_test], Y_test, timestamps_test))
         dump(temp_path + '/train.p', ([X_group_train, X_pairs_train], Y_train, timestamps_train))
         dump(temp_path + '/val.p', ([X_group_val, X_pairs_val], Y_val, timestamps_val))
-                    
-
-        
