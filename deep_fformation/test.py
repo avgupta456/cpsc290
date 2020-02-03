@@ -33,7 +33,12 @@ if __name__ == "__main__":
     model = keras.models.load_model(args.model_path + "/val_fold_" + str(args.k_fold)
         + "/best_val_model.h5", custom_objects={'tf':tf , 'max_people':max_people})
 
-    model.save_weights('weights.h5', by_name=True)
-
     print(model)
     print(model.summary())
+
+    '''
+    model.save_weights('weights.h5')
+    new_model = keras.models.load_model('weights.h5', by_name=True)
+    print(new_model)
+    print(new_model.summary())
+    '''
