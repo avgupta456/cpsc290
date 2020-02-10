@@ -1,14 +1,11 @@
 import argparse
 
 from utils import load_data, build_model
-#from gcdata_importer import import_gc_data, add_time
-#from ds_for_valid import create_groups_at_time, F1_calc
 
 import numpy as np
 import tensorflow as tf
 import pickle
 import os
-
 
 import keras
 from keras import backend as K
@@ -46,6 +43,7 @@ if __name__ == "__main__":
     model.save_weights('weights.h5')
 
     #taken from architecture file
+    #TODO: read these values from file directly
     global_filters = [32, 256, 1024]
     individual_filters = [16, 64]
     combined_filters = [1024, 256]
@@ -60,18 +58,6 @@ if __name__ == "__main__":
     model2.summary()
 
     model2.save('new_model.h5')
-
-    preds = model2.predict(X)
-
-    groups_at_time = create_groups_at_time()
-    positions = []
-
-    f_2_3, _, _, f_1, _, _ = F1_calc(preds, timestamps, groups_at_time, positions,
-                                n_people=n_people, thres=1e-5, n_features=n_features,
-                                group_percent=group_percent)
-
-    print(f_2_3, f_1)
-
 
 #Use the below command to run with cocktail_party dataset and pretrained model (fold 2)
 #py -3 test.py -k 2 -m models/cocktail_party/pair_predictions_24/ -d cocktail_party
