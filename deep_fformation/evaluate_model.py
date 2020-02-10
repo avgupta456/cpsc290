@@ -24,16 +24,16 @@ python evaluate_model.py -k 0 -m models/cocktail_party/pair_predicitons_8 -d coc
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-k', '--k_fold', type=str, default='0', 
+    parser.add_argument('-k', '--k_fold', type=str, default='0',
         help="the fold being considered")
-    parser.add_argument('-m', '--model_path', type=str, 
+    parser.add_argument('-m', '--model_path', type=str,
         help="path to the desired model directory (e.g. models/cocktail_party/pair_predictions_1/)", required=True)
     parser.add_argument('-d', '--dataset', type=str, required=True,
         help="which dataset to use (e.g. cocktail_party)")
-    parser.add_argument('-f', '--F1', action='store_true', default=False, 
-        help="calculates the F1 score on the test set, otherwise saves predictions to an output file") 
-    parser.add_argument('--non_reusable', action='store_true', default=False, 
-        help="doesn't reuse the same sets in GDSR calc")  
+    parser.add_argument('-f', '--F1', action='store_true', default=False,
+        help="calculates the F1 score on the test set, otherwise saves predictions to an output file")
+    parser.add_argument('--non_reusable', action='store_true', default=False,
+        help="doesn't reuse the same sets in GDSR calc")
 
     return parser.parse_args()
 
@@ -87,8 +87,12 @@ if __name__ == "__main__":
     X, y, timestamps = test
     num_test, _, max_people, d = X[0].shape
 
-    model = keras.models.load_model(args.model_path + "/val_fold_" + str(args.k_fold) 
+    '''
+    model = keras.models.load_model(args.model_path + "/val_fold_" + str(args.k_fold)
         + "/best_val_model.h5", custom_objects={'tf':tf , 'max_people':max_people})
+    '''
+    
+    model = keras.models.load_model('new_model')
 
     preds = model.predict(X)
 
@@ -104,14 +108,14 @@ if __name__ == "__main__":
         elif "SALSA_all" in args.dataset:
             positions, groups = import_gc_data("SALSA_all")
             groups_at_time = add_time(groups)
-            gcdata_importer import F1_calc
+            from gcdata_importer import F1_calc
             n_people = 18
             n_features = 5
             group_percent = False
         elif "FM_Synth" in args.dataset:
             positions, groups = import_gc_data("FM_Synth")
             groups_at_time = add_time(groups)
-            gcdata_importer import F1_calc
+            from gcdata_importer import F1_calc
             n_people = 10
             n_features = 3
             # calculate GDSR instead of F1
@@ -124,8 +128,8 @@ if __name__ == "__main__":
             throw("unrecognized dataset")
 
 
-        f_2_3, _, _, f_1, _, _ = F1_calc(preds, timestamps, groups_at_time, positions, 
-                                    n_people=n_people, thres=1e-5, n_features=n_features, 
+        f_2_3, _, _, f_1, _, _ = F1_calc(preds, timestamps, groups_at_time, positions,
+                                    n_people=n_people, thres=1e-5, n_features=n_features,
                                     group_percent=group_percent, non_reusable=args.non_reusable)
         print(f_2_3, f_1)
 
