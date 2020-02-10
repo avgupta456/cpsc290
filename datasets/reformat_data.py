@@ -16,6 +16,13 @@ def import_data(dataset):
 	Groups = np.genfromtxt(path + dataset + "/DS_utils/group_names.txt", dtype = 'str', delimiter = ',')
 	return Positions, Groups
 
+def import_data_fake(dataset):
+	dataset = str(dataset)
+	path = "../datasets/" # this should get you to these files, edit if it doesn't
+	Positions = np.genfromtxt(path + dataset + "/DS_utils/features_fake.txt", dtype = 'str')
+	Groups = np.genfromtxt(path + dataset + "/DS_utils/group_names.txt", dtype = 'str', delimiter = ',')
+	return Positions, Groups
+
 # run this to generate Groups_at_time, Groups is from import_gc_data()
 # Groups is of the form: time < ID001 ID002 > < ID003 > etc.
 # returns dictionary from time to array of group arrays
@@ -229,7 +236,7 @@ if __name__ == "__main__":
 	n_augmented_features = args.n_aug_features
 
 	print("importing data..")
-	Positions, Groups = import_data(dataset)
+	Positions, Groups = import_data_fake(dataset)
 	print("data imported")
 	Groups_at_time = add_time(Groups)
 	print('groups at time made')
