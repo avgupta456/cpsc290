@@ -1,11 +1,19 @@
 import argparse
 
-from utils import load_data
+from utils import load_data, build_model
 
 import numpy as np
 import tensorflow as tf
-import keras
+import pickle
 import os
+
+
+import keras
+from keras import backend as K
+from keras.models import Model
+from keras.layers import Dense, Dropout, Conv2D, Reshape, MaxPooling2D, Concatenate, Lambda, Dot, BatchNormalization, Flatten
+
+from F1_calc import F1_calc
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -28,17 +36,29 @@ if __name__ == "__main__":
     test, train, val = load_data("../datasets/" + args.dataset + "/fold_" + str(args.k_fold))
     X, y, timestamps = test
     num_test, _, max_people, d = X[0].shape
-    print(max_people)
 
     model = keras.models.load_model(args.model_path + "/val_fold_" + str(args.k_fold)
         + "/best_val_model.h5", custom_objects={'tf':tf , 'max_people':max_people})
 
-    print(model)
-    print(model.summary())
-
-    '''
+    model.summary()
     model.save_weights('weights.h5')
-    new_model = keras.models.load_model('weights.h5', by_name=True)
-    print(new_model)
-    print(new_model.summary())
-    '''
+
+    #taken from architecture file
+    global_filters = [32, 256, 1024]
+    individual_filters = [16, 64]
+    combined_filters = [1024, 256]
+    reg = 5.011872336272725e-06
+    dropout = 0.13
+
+    n_people = 50
+    d = 4
+
+    model2 = build_model(reg, dropout, n_people, d, global_filters, individual_filters, combined_filters)
+    model2.load_weights('weights.h5')
+    model2.summary()
+
+    
+
+
+#Use the below command to run with cocktail_party dataset and pretrained model (fold 2)
+#py -3 test.py -k 2 -m models/cocktail_party/pair_predictions_24/ -d cocktail_party

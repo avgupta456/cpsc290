@@ -1,0 +1,13 @@
+cd datasets
+py -3 add_fakes.py -d cocktail_party -p 50 -f 4
+py -3 reformat_data.py -d cocktail_party -p 50
+py -3 build_dataset.py -p cocktail_party
+
+cd ../deep_fformation
+py -3 run_models.py -d cocktail_party
+
+
+Notes
+- seems to slow down dataset formation
+- model training also seems slower, due to more data being moved in while training (10x worse is significant?)
+  - need to check how this changes on GPU, if this is important or okay (esp if n=50 can be reduced to n=15 or 20)
