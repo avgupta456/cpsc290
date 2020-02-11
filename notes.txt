@@ -7,6 +7,9 @@ cd ../deep_fformation
 py -3 run_models.py -d cocktail_party
 
 
+py -3 load_old_model.py -k 2 -m models/cocktail_party/pair_predictions_24/ -d cocktail_party
+
+
 Notes
 - seems to slow down dataset formation
 - model training also seems slower, due to more data being moved in while training (10x worse is significant?)
