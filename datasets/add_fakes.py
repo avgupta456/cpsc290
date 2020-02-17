@@ -39,22 +39,3 @@ if __name__ == "__main__":
     print("saving augmented dataset")
     save_data(dataset, posArrNew)
     print("augmented dataset saved")
-
-    '''
-
-	if n_features == 4 and use_velocities == False:
-		shift_all_data_standard(Positions, Groups_at_time, n_people, dataset)
-	else:
-		shift_all_data_nonstandard(Positions, Groups_at_time, n_people=n_people, n_features=n_features, n_augmented_features = n_augmented_features, velocities = use_velocities, dataset = dataset)
-
-	Shifted_Coordinates = np.genfromtxt('../datasets/' + dataset + '/coordinates.txt', dtype = 'str', delimiter = ' ')
-	print("data shifted")
-	affinites, timechanges = affinities_and_timechanges(Shifted_Coordinates, Groups_at_time)
-	print("shifted affinity file generated")
-
-	np.savetxt('../datasets/' + dataset + '/timechanges.txt', timechanges, fmt = '%s')
-	np.savetxt('../datasets/' + dataset + '/affinities.txt', affinites, fmt = '%s')
-	print("Coordinates (features) file saved")
-	print("file generation of reformatted data done. ready for build_dataset.py")
-
-    '''
