@@ -100,11 +100,12 @@ def augment(pre_transform, j, k, max_people, features):
     return augment_transform
 
 
-def build_dataset(X_old, Y_old, max_people, features):
+def build_dataset(X_old, Y_old, max_people, features, X_path, Y_path, times_path):
     pre_features = features[0] + features[1] + features[2]
     post_features = features[0] + 2*features[1] + features[2]
 
-    times = np.empty(shape=(X_old.shape[0], 2), dtype="U50")
+    times = np.empty(shape=(2*X_old.shape[0], 1), dtype="U50")
+    times_pos = 0
 
     points = 0
     for i in range(len(X_old)):
@@ -121,8 +122,10 @@ def build_dataset(X_old, Y_old, max_people, features):
         people = int((np.where(X_old[i]=="fake")[0][0]-1)/(pre_features+1))
         combinations = [[p1, p2] for p1 in range(people) for p2 in range(people) if p1!=p2]
         for func in [transform, augment]:
+            times[times_pos] = pos
+            times_pos += 1
+
             for j, k in combinations:
-                
                 pre_transform[0][0] = X_old[i][0]
                 count = 0
 
@@ -147,23 +150,25 @@ def build_dataset(X_old, Y_old, max_people, features):
                 Y[pos] = [X[pos][0], affinity]
                 pos += 1
 
-    return X, Y
+    np.savetxt(X_path, X, fmt='%s')
+    np.savetxt(Y_path, Y, fmt='%s')
+    np.savetxt(times_path, times, fmt='%s')
 
-features_path = "./datasets/cocktail/raw/features.txt"
+    return X, Y, times
+
+features_path = "./datasets/cocktail/raw/features_expanded.txt"
 groups_path = "./datasets/cocktail/raw/groups.txt"
 
 max_people = 20 #max people possible
 
 f_pos_xy = 2 #space stored for x, y
-f_pos_angle = 1 #space stored for angles related to position
+f_pos_angle = 2 #space stored for angles related to position
 f_normal = 0 #space stored for all other features
 features = [f_pos_xy, f_pos_angle, f_normal]
-null = [0] * (f_pos_xy+f_pos_angle+f_normal)
+
+X_path = "./datasets/cocktail/coordinates.txt"
+Y_path = "./datasets/cocktail/affinities.txt"
+times_path = "./datasets/cocktail/timechanges.txt"
 
 X_old, Y_old = load_features(features_path, groups_path, max_people, features)
-X, Y = build_dataset(X_old, Y_old, max_people, features)
-print(X)
-print(Y)
-
-print(X.shape)
-print(Y.shape)
+X, Y, times = build_dataset(X_old, Y_old, max_people, features, X_path, Y_path, times_path)
