@@ -1,134 +1,60 @@
-import ds
+from ds import ds
+import numpy as np
 
-# group_thres = T in most papers. The threshold for a correctly detected group
-# affinities = rows of affinity predictions
-# times = corresponding times
-# Groups_at_time = dictionary from time to groups
-# Positions = matrix of features at times. Form of row: time, ID001, x, y, ....
-# ds_precision_thres = threshold for ending iterative dominant sets matrix algorithm. standard value is 1e-5
-# n_features = number of features per person in Positions matrix, including name. eg (ID001, x, y, theta) is 4 features
-# non_resuable = flag to set. if True, don't can't get multiple true groups with the same guess if T low enough
-def F1_calc(group_thres, affinities, times, Groups_at_time, Positions, n_people, ds_iteration_thres, n_features, non_reusable=False):
-	T = group_thres
-	avg_results = np.array([0.0,0.0])
+def calc_f1(X, Y, times, preds, thres):
+    results = np.array([0.0, 0.0])
+    for i in range(len(times)-1):
+        start = int(times[i])
+        end = int(times[i+1])
+        points = end - start
+        num_people = int(np.sqrt(points))+1
 
-	# this assumes affinities and times are the same length
-	done = False
-	prev_time_arr = [-1,-1]
-	start_idx = 0
-	num_times = 0
-	while not done:
-		num_times += 1
-		looking = True
-		end_idx = start_idx
-		prev_time_arr[0] = times[start_idx].split(':')[0]
-		prev_time_arr[1] = times[start_idx].split(':')[3]
-		while looking:
-			if end_idx == len(times):
-				done = True
-				break
-			time = times[end_idx]
-			if time.split(':')[0] == prev_time_arr[0] and time.split(':')[3] == prev_time_arr[1]:
-				end_idx += 1
-				continue
-			else:
-				break
-		predictions = affinities[start_idx:end_idx]
+        X_group = X[0][start][0][:num_people-2]
+        X_pair = X[1][start][0]
+        X_new = np.append(X_pair, X_group)
 
-		time = times[start_idx]
-		time = time.split(':')[0]
-		start_idx = end_idx
+        Y_truth = Y[start:end]
+        Y_pred = preds[start:end]
 
+        pred = ds(Y_pred, num_people)
+        truth = ds(Y_truth, num_people)
 
-		predictions = predictions.flatten()
+        TF, FN, FP, P, R = indiv_f1(pred, truth, thres)
+        results += np.array([P, R])
 
-		frame_idx = list(Positions[:,0]).index(time)
-		frame = Positions[frame_idx]
+    results /= (len(times) - 1)
+    P, R = results
 
-		bool_groups = iterate_climb_learned(predictions, frame, n_people, thres=ds_iteration_thres, n_features=n_features)
-		guesses = group_names(bool_groups, n_people)
-		truth = Groups_at_time[time]
-		correctness = group_correctness(guesses, truth, T, non_reusable = non_reusable)
-
-		TP_n, FN_n, FP_n, precision, recall = correctness
-
-		avg_results += np.array([precision, recall])
-
-	avg_results /= num_times
-
-	if avg_results[0]*avg_results[1] == 0:
-		f1_avg = 0
-	else:
-		f1_avg = float(2)* avg_results[0] * avg_results[1] / (avg_results[0] + avg_results[1])
-
-	# Note: GDSR = avg_results[1], (T usually = 0.6)
-
-	return f1_avg, avg_results[0], avg_results[1]
-
+    f1 = 2 * P * R / (P + R)
+    return P, R, f1
 
 ## calculates true positives, false negatives, and false positives
 ## given the guesses, the true groups, and the threshold T
-def group_correctness(guesses, truth, T, non_reusable = False):
-	TP = 0
-	FN = 0
-	FP = 0
+def indiv_f1(pred, truth, T):
+    TP, FN, FP = 0, 0, 0
+    n_true_groups = len(truth)
+    n_pred_groups = len(pred)
 
-	n_true_groups = len(truth)
-	n_guess_groups = len(guesses)
+    for true_group in truth:
+        for pred_group in pred:
+            n_found = 0
+            for person in pred_group:
+                if person in true_group:
+                    n_found += 1
 
-	for true_group in truth:
-		if len(true_group) <= 1:
-			n_true_groups -= 1
+            n_total = max(len(true_group), len(pred_group))
+            acc = float(n_found) / n_total
+            if acc>=T: TP += 1
 
-	for guess in guesses:
-		if len(guess) <= 1:
-			n_guess_groups -= 1
-			continue
-
-	for true_group in truth:
-		if len(true_group) <= 1:
-			continue
-
-		for guess in guesses:
-			if len(guess) <= 1:
-				continue
-
-			n_found = 0
-			for person in guess:
-				if person in true_group:
-					n_found += 1
-
-			if float(n_found) / max(len(true_group), len(guess)) >= T:
-				if non_reusable == True:
-					guesses.remove(guess)
-				TP += 1
-
-	if n_true_groups == 0 and n_guess_groups == 0:
-		return 0,0,0,1,1
-
-	elif n_true_groups == 0:
-		return 0,n_guess_groups,0,0,1
-
-	elif n_guess_groups == 0:
-		return 0,0,n_true_groups, 1, 0
-
-	else:
-		FP = n_guess_groups - TP
-		FN = n_true_groups - TP
-		precision = float(TP) / (TP + FP)
-		recall = float(TP) / (TP + FN)
-		return TP, FN, FP, precision, recall
-
-
-
-# for a set of vectors of the form [0,1,0,...,1], return a set of vectors of group names
-# for more efficiency later, we should represent groups the first way, but for now we do this
-def group_names(bool_groups, n_people):
-	groups = []
-	for bool_group in bool_groups:
-		group = []
-		for i in range(n_people):
-			if (bool_group[i]):
-				group.append("ID_00" + str(i+1))
-		groups.append(group)
-	return groups
+    if n_true_groups == 0 and n_pred_groups == 0:
+        return [0, 0, 0, 1, 1]
+    elif n_true_groups == 0:
+        return [0, n_pred_groups, 0, 0, 1]
+    elif n_pred_groups == 0:
+        return [0, 0, n_true_groups, 1, 0]
+    else:
+        FP = n_pred_groups - TP
+        FN = n_true_groups - TP
+        P = float(TP) / (TP + FP) #precision
+        R = float(TP) / (TP + FN) #recall
+        return TP, FN, FP, P, R

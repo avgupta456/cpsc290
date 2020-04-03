@@ -5,7 +5,7 @@ import math
 # http://homepage.tudelft.nl/3e2t5/HungKrose_ICMI2011.pdf
 
 # fills an n_people x n_people matrix with affinity values.
-def learned_affinity(preds, n_people, n_features):
+def learned_affinity(preds, n_people):
 	A = np.zeros((n_people, n_people))
 	idx = 0
 
@@ -69,22 +69,32 @@ def vector_climb(A, allowed, n_people, thres=1e-5):
 
 	return groups
 
+def process_groups(bool_groups, n_people):
+    groups = []
+    for bool_group in bool_groups:
+        group = []
+        for i in range(n_people):
+            if (bool_group[i]): group.append("ID_00" + str(i+1))
+        if(len(group)>1): groups.append(group)
+    return groups
+
 # Finds vectors x of people which maximize f. Then removes those people and repeats
-def iterate_climb_learned(preds, n_people, n_features):
-	allowed = np.ones(n_people)
-	groups = []
+# main method
+def ds(preds, n_people):
+    allowed = np.ones(n_people)
+    groups = []
 
-	A = learned_affinity(preds, n_people, n_features)
+    A = learned_affinity(preds, n_people)
 
-	while (np.sum(allowed) > 1):
-		A[allowed == False] = 0
-		A[:,allowed == False] = 0
+    while (np.sum(allowed) > 1):
+        A[allowed == False] = 0
+        A[:,allowed == False] = 0
 
-		if (np.sum(np.dot(allowed,A)) == 0): break
-		x = vector_climb(A, allowed, n_people, thres=1e-5)
-		if len(x) == 0: break
-		groups.append(x)
+        if (np.sum(np.dot(allowed,A)) == 0): break
+        x = vector_climb(A, allowed, n_people, thres=1e-5)
+        if len(x) == 0: break
+        groups.append(x)
 
-		allowed = np.multiply(x == False, allowed)
+        allowed = np.multiply(x == False, allowed)
 
-	return groups
+    return process_groups(groups, n_people)
