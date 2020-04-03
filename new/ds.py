@@ -5,21 +5,15 @@ import math
 # http://homepage.tudelft.nl/3e2t5/HungKrose_ICMI2011.pdf
 
 # fills an n_people x n_people matrix with affinity values.
-def learned_affinity(n_people, truth_arr, frame, n_features):
+def learned_affinity(preds, n_people, n_features):
 	A = np.zeros((n_people, n_people))
 	idx = 0
-	always_counting_idx = -1
-	for i in range(n_people):
-		if frame[i*n_features+1] == 'fake':
-			continue
-		for j in range(n_people):
-			if frame[j*n_features+1] == 'fake':
-				continue
-			if i == j:
-				continue
 
-			A[i,j] += truth_arr[idx]/2
-			A[j,i] += truth_arr[idx]/2
+	for i in range(n_people):
+		for j in range(n_people):
+			if i == j: continue
+			A[i,j] += preds[idx]/2
+			A[j,i] += preds[idx]/2
 			idx += 1
 
 	return A
@@ -46,7 +40,7 @@ def weight(S, i, A):
 		sum_weights = 0
 		for j in range(len(R)):
 			if R[j]:
-				sum_weights += phi(R,j,i,A) * weight(R, j, A)
+				sum_weights += phi(R,j,i,A) * weight(R,j,A)
 				return sum_weights
 
 ## optimization function
@@ -76,11 +70,11 @@ def vector_climb(A, allowed, n_people, thres=1e-5):
 	return groups
 
 # Finds vectors x of people which maximize f. Then removes those people and repeats
-def iterate_climb_learned(predictions, frame, n_people, thres, n_features):
+def iterate_climb_learned(preds, n_people, n_features):
 	allowed = np.ones(n_people)
 	groups = []
 
-	A = learned_affinity(n_people, predictions, frame, n_features)
+	A = learned_affinity(preds, n_people, n_features)
 
 	while (np.sum(allowed) > 1):
 		A[allowed == False] = 0
