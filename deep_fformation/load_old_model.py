@@ -50,7 +50,7 @@ if __name__ == "__main__":
     reg = 5.011872336272725e-06
     dropout = 0.13
 
-    n_people = 50
+    n_people = 20
     d = 4
 
     model2 = build_model(reg, dropout, n_people-2, d, global_filters, individual_filters, combined_filters)
