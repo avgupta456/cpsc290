@@ -187,9 +187,11 @@ def save_dataset(X, Y, times, max_people, features, processed_path):
     while(train not in new_times): treain -=1
     train_index = new_times.index(train)
     times_train = new_times[test_index:train_index]
+    for i in range(len(times_train)): times_train[i]-=test
 
     val = points
     times_val = new_times[train_index:]
+    for i in range(len(times_val)): times_val[i]-=train
 
     X_group_test = X_group[:test]
     X_group_train = X_group[test:train]
