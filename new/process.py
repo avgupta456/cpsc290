@@ -161,7 +161,11 @@ def build_dataset(X_old, Y_old, max_people, features, clean_path):
 
     return X, Y, times
 
-def save_dataset(X, Y, max_people, features, processed_path):
+def save_dataset(X, Y, times, max_people, features, processed_path):
+    new_times = []
+    for time in times:
+        new_times.append(float(time[0]))
+
     post_features = features[0] + 2*features[1] + features[2]
     points = X.shape[0]
 
@@ -174,14 +178,18 @@ def save_dataset(X, Y, max_people, features, processed_path):
         X_pairs[i][0] = np.reshape(X[i][-2*post_features:], newshape=(2, post_features))
         Y_new[i][0] = int(Y[i][1])
 
-    p = np.random.permutation(points)
-    X_group = X_group[p]
-    X_pairs = X_pairs[p]
-    Y_new = Y_new[p]
-
     test = int(0.20*points)
+    while(test not in new_times): test-=1
+    test_index = new_times.index(test)
+    times_test = new_times[:test_index]
+
     train = int(0.90*points)
+    while(train not in new_times): treain -=1
+    train_index = new_times.index(train)
+    times_train = new_times[test_index:train_index]
+
     val = points
+    times_val = new_times[train_index:]
 
     X_group_test = X_group[:test]
     X_group_train = X_group[test:train]
@@ -195,11 +203,11 @@ def save_dataset(X, Y, max_people, features, processed_path):
     Y_train = Y_new[test:train]
     Y_val = Y_new[train:val]
 
-    dump(processed_path + '/test.p', ([X_group_test, X_pairs_test], Y_test))
-    dump(processed_path + '/train.p', ([X_group_train, X_pairs_train], Y_train))
-    dump(processed_path + '/val.p', ([X_group_val, X_pairs_val], Y_val))
+    dump(processed_path + '/test.p', ([X_group_test, X_pairs_test], Y_test, times_test))
+    dump(processed_path + '/train.p', ([X_group_train, X_pairs_train], Y_train, times_train))
+    dump(processed_path + '/val.p', ([X_group_val, X_pairs_val], Y_val, times_val))
 
-expanded = True
+expanded = False
 if(expanded): folder = "cocktail_expanded"
 else: folder = "cocktail"
 
@@ -217,4 +225,4 @@ else: features = [2, 1, 0]
 
 X_old, Y_old = load_features(max_people, features, raw_path)
 X, Y, times = build_dataset(X_old, Y_old, max_people, features, clean_path)
-save_dataset(X, Y, max_people, features, processed_path)
+save_dataset(X, Y, times, max_people, features, processed_path)
