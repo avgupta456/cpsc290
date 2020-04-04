@@ -171,7 +171,7 @@ def save_dataset(X, Y, times, max_people, features, processed_path):
 
     X_group = np.zeros(shape=(points, 1, max_people-2, post_features))
     X_pairs = np.zeros(shape=(points, 1, 2, post_features))
-    Y_new = np.zeros(shape=(points, 1))
+    Y_new = np.zeros(shape=(points, 1), dtype=np.int8)
 
     for i in range(points):
         X_group[i][0] = np.reshape(X[i][1:-2*post_features], newshape=(max_people-2, post_features))

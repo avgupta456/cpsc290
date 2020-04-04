@@ -4,20 +4,11 @@ import numpy as np
 def calc_f1(X, Y, times, preds, thres):
     results = np.array([0.0, 0.0])
     for i in range(len(times)-1):
-        start = int(times[i])
-        end = int(times[i+1])
-        points = end - start
-        num_people = int(np.sqrt(points))+1
+        start, stop = int(times[i]), int(times[i+1])
+        num_people = int(np.sqrt(stop-start))+1
 
-        X_group = X[0][start][0][:num_people-2]
-        X_pair = X[1][start][0]
-        X_new = np.append(X_pair, X_group)
-
-        Y_truth = Y[start:end]
-        Y_pred = preds[start:end]
-
-        pred = ds(Y_pred, num_people)
-        truth = ds(Y_truth, num_people)
+        pred = ds(Y[start:stop], num_people)
+        truth = ds(preds[start:stop], num_people)
 
         TF, FN, FP, P, R = indiv_f1(pred, truth, thres)
         results += np.array([P, R])
