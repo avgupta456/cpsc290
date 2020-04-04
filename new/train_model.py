@@ -5,12 +5,12 @@ import os
 import tensorflow as tf
 import keras
 
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Dense, Dropout, Conv2D, Reshape, MaxPooling2D
-from tensorflow.keras.layers import Concatenate, Lambda, Dot, BatchNormalization, Flatten
+from keras.models import Model
+from keras.layers import Dense, Dropout, Conv2D, Reshape, MaxPooling2D
+from keras.layers import Concatenate, Lambda, Dot, BatchNormalization, Flatten
 
-from f1 import calc_f1
-from ds import ds
+from helper.f1 import calc_f1
+from helper.ds import ds
 
 class ValLoss(keras.callbacks.Callback):
 
@@ -198,6 +198,7 @@ def train_and_save_model(global_filters, individual_filters, combined_filters,
     history = ValLoss(test) #custom callback implemented above
     tensorboard = keras.callbacks.TensorBoard(log_dir='./logs')
 
+    os.system('cls') #hides annoying warnings
     model.fit(X_train, Y_train, epochs=epochs, batch_size=1024,
         validation_data=(X_test, Y_test), callbacks=[tensorboard, history, early_stop])
 

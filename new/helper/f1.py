@@ -1,4 +1,4 @@
-from ds import ds
+from helper.ds import ds
 import numpy as np
 
 def calc_f1(X, Y, times, preds, thres):
