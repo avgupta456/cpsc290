@@ -1,0 +1,6 @@
+Todo:
+1. visualization
+2. centralized main.py file that sets the dataset, max_people, etc
+3. transfer to google colab and actually finish compiling a model
+4. model search (possibly genetic algorithm)
+5. folds? Ask Dr. Vazquez about that

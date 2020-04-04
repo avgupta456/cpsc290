@@ -1,0 +1,5 @@
+global: [32, 256, 1024]
+individual: [16, 64]
+combined: [1024, 256]
+reg= 5.011872336272725e-06
+dropout= 0.13

@@ -196,11 +196,10 @@ def train_and_save_model(global_filters, individual_filters, combined_filters,
     # train modelval_mean_squared_error
     early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=50)
     history = ValLoss(test) #custom callback implemented above
-    tensorboard = keras.callbacks.TensorBoard(log_dir='./logs')
 
     os.system('cls') #hides annoying warnings
     model.fit(X_train, Y_train, epochs=epochs, batch_size=1024,
-        validation_data=(X_test, Y_test), callbacks=[tensorboard, history, early_stop])
+        validation_data=(X_test, Y_test), callbacks=[history, early_stop])
 
     best_val_mses.append(history.best_val_mse)
     best_val_f1s_one.append(history.val_f1_one_obj['best_f1'])
