@@ -1,37 +1,41 @@
-import tensorflow as tf
 import numpy as np
-import pickle
-import keras
 import math
 
-import f1
+import tensorflow as tf
+import keras as keras
+
+from keras import backend as K
+from keras.models import Model
+from keras.layers import Dense, Dropout, Conv2D, Reshape, MaxPooling2D, Concatenate, Lambda, Dot, BatchNormalization, Flatten
+
+from f1 import calc_f1
 from ds import ds
 
-def load_matrix(file):
-    with open(file, 'rb') as f:
-        return pickle.load(f)
+import train_model
+import utils
 
-def load_data(path):
-    train = load_matrix(path + '/train.p')
-    test = load_matrix(path + '/test.p')
-    val = load_matrix(path + '/val.p')
-    return train, test, val
-
-def train_model(model_path, data_path, max_people):
-    model = keras.models.load_model(model_path, custom_objects={'tf':tf , 'max_people':max_people})
+def test_model(model_path, max_people):
+    model = keras.models.load_model(model_path+"/model.h5", custom_objects={'tf':tf , 'max_people':max_people})
     model.summary()
 
     train, test, val = load_data(data_path)
-    X, Y, times = val
-    num_features = X[0].shape[3]
+    for data in [train, test, val]:
+        X, Y, times = data
+        preds = model.predict(X)
+        print(calc_f1(X, Y, times, preds, 2/3))
+        print(calc_f1(X, Y, times, preds, 1))
 
-    preds = model.predict(X)
-    print(f1.calc_f1(X, Y, times, preds, 2/3))
-    print(f1.calc_f1(X, Y, times, preds, 1))
-
-model_path = "./models/cocktail/model.h5"
+model_path = "./models/cocktail/model1"
 max_people = 20
 
-data_path = "./datasets/cocktail/processed/"
+#test_model(model_path, data_path, max_people)
 
-train_model(model_path, data_path, max_people)
+global_filters = [32, 256, 1024]
+individual_filters = [16, 64]
+combined_filters = [1024, 256]
+epochs = 600
+reg = 5.011872336272725e-06
+dropout = 0.13
+
+train, test, val = utils.load_data("cocktail")
+train_model.train_and_save_model(global_filters, individual_filters, combined_filters, train, val, test, model_path, epochs, reg, dropout)
