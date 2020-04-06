@@ -59,11 +59,11 @@ def write_history(file_name, history, test):
     file.write("best_val: " + str(history.best_val_mse))
     file.write("\nepoch: " + str(history.best_epoch))
 
-    file.write("\nbest_val_f1_1: " + str(history.val_f1_one_obj['best_f1']))
-    file.write("\nepoch: " + str(history.val_f1_one_obj['epoch']))
+    file.write("\nbest_val_f1_1: " + str(history.val_f1['best_f1']))
+    file.write("\nepoch: " + str(history.val_f1['epoch']))
 
     X_test, Y_test, times_test = test
-    preds = history.val_f1_one_obj['model'].predict(X_test)
+    preds = history.val_f1['model'].predict(X_test)
     p23, r23, f23 = calc_f1(X_test, Y_test, times_test, preds, 2/3)
     p1, r1, f1 = calc_f1(X_test, Y_test, times_test, preds, 1)
 
@@ -71,11 +71,11 @@ def write_history(file_name, history, test):
     file.write('\nprecisions: ' + str(p23) + " " + str(p1))
     file.write('\nrecalls: ' + str(r23) + " " + str(r1))
 
-    file.write("\nbest_val_f1_2/3: " + str(history.val_f1_two_thirds_obj['best_f1']))
-    file.write("\nepoch: " + str(history.val_f1_two_thirds_obj['epoch']))
+    file.write("\nbest_val_f1_2/3: " + str(history.val_f2_3['best_f1']))
+    file.write("\nepoch: " + str(history.val_f2_3['epoch']))
 
     X_test, Y_test, times_test = test
-    preds = history.val_f1_two_thirds_obj['model'].predict(X_test)
+    preds = history.val_f2_3['model'].predict(X_test)
     p23, r23, f23 = calc_f1(X_test, Y_test, times_test, preds, 2/3)
     p1, r1, f1 = calc_f1(X_test, Y_test, times_test, preds, 1)
 
@@ -100,11 +100,11 @@ def write_history(file_name, history, test):
         file.write('\n' + str(loss))
 
     file.write("\nval 1 f1:")
-    for f1 in history.val_f1_one_obj['f1s']:
+    for f1 in history.val_f1['f1s']:
         file.write('\n' + str(f1))
 
     file.write("\nval 2/3 f1:")
-    for f1 in history.val_f1_two_thirds_obj['f1s']:
+    for f1 in history.val_f2_3['f1s']:
         file.write('\n' + str(f1))
 
     file.close()
@@ -160,7 +160,7 @@ def build_model(reg_amt, drop_amt, max_people, num_features, global_filters, ind
     model = Model(inputs=[group_inputs, pair_inputs], outputs=affinity)
 
     opt = keras.optimizers.Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, decay=1e-5, amsgrad=False, clipvalue=0.5)
-    model.compile(optimizer=opt, loss="binary_crossentropy", metrics=['mse'])
+    model.compile(optimizer=opt, loss="binary_crossentropy", metrics=['mean_squared_error'])
 
     return model
 
@@ -183,33 +183,34 @@ def train_and_save_model(global_filters, individual_filters, combined_filters,
         "\nreg= " + str(reg) + "\ndropout= " + str(dropout))
 
     best_val_mses = []
-    best_val_f1s_one = []
-    best_val_f1s_two_thirds = []
+    best_val_f1 = []
+    best_val_f2_3 = []
 
     X_train, Y_train, times_train = train
     X_test, Y_test, times_test = test
+    X_val, Y_val, times_val = val
 
     # build model
     model = build_model(reg, dropout, max_people, num_features,
         global_filters, individual_filters, combined_filters)
 
-    # train modelval_mean_squared_error
+    # train model val_mse
     early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=50)
     history = ValLoss(test) #custom callback implemented above
 
     #os.system('cls') #hides annoying warnings
     model.fit(X_train, Y_train, epochs=epochs, batch_size=1024,
-        validation_data=(X_test, Y_test), callbacks=[history, early_stop])
+        validation_data=(X_val, Y_val), callbacks=[history, early_stop])
 
     best_val_mses.append(history.best_val_mse)
-    best_val_f1s_one.append(history.val_f1_one_obj['best_f1'])
-    best_val_f1s_two_thirds.append(history.val_f1_two_thirds_obj['best_f1'])
+    best_val_f1.append(history.val_f1['best_f1'])
+    best_val_f2_3.append(history.val_f2_3['best_f1'])
 
     # save model
     write_history(model_path + '/results.txt', history, test)
-    history.val_f1_one_obj['model'].save(name + '/model.h5')
+    history.val_f1['model'].save(model_path + '/model.h5')
 
     file.write("\n\nbest overall val loss: " + str(min(best_val_mses)))
-    file.write("\n\nbest overall f1 1: " + str(max(best_val_f1s_one)))
-    file.write("\n\nbest overall f1 2/3: " + str(max(best_val_f1s_two_thirds)))
+    file.write("\n\nbest overall f1 1: " + str(max(best_val_f1)))
+    file.write("\n\nbest overall f1 2/3: " + str(max(best_val_f2_3)))
     file.close()

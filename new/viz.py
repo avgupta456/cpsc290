@@ -50,4 +50,10 @@ else: features = [2, 1, 0]
 
 X = np.loadtxt(viz_path+"/X.txt", dtype="U50")
 Y = np.loadtxt(viz_path+"/Y.txt", dtype="U50")
-predict(X[0], Y[0], max_people, features, model_path)
+
+file1 = open(raw_path + "/groups.txt", "r")
+lines1 = file1.readlines()
+
+for loc in range(0, 320):
+    predict(X[loc], Y[loc], max_people, features, model_path)
+    print(lines1[loc])
