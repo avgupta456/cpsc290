@@ -1,12 +1,8 @@
 import numpy as np
-import itertools
 import random
-import pickle
 import re
 
-def dump(path, data):
-    with open(path, 'wb') as f:
-        pickle.dump(data, f)
+from helper import utils
 
 def load_features(max_people, features, raw_path, viz_path):
     file1 = open(raw_path + "/groups.txt", "r")
@@ -64,97 +60,46 @@ def load_features(max_people, features, raw_path, viz_path):
 
     return X, Y
 
-
-def transform(pre_transform, i, j, max_people, features):
-    pre_features = features[0] + features[1] + features[2]
-    post_features = features[0] + 2*features[1] + features[2]
-    features_i = pre_transform[0][pre_features*(max_people-2)+1:pre_features*(max_people-1)+1]
-    features_j = pre_transform[0][pre_features*(max_people-1)+1:pre_features*max_people+1]
-
-    [xi, yi] = [float(features_i[0]), float(features_i[1])]
-    [xj, yj] = [float(features_j[0]), float(features_j[1])]
-    [a, b, dx, dy] = [(xi+xj)/2, (yi+yj)/2, (xi-xj)/2, (yi-yj)/2]
-    [b0, b1] = [dx/np.sqrt(dx**2+dy**2), dy/np.sqrt(dx**2+dy**2)]
-
-    post_transform = np.empty(shape=(1, 1+max_people*post_features), dtype="U50")
-    post_transform[0][0] = pre_transform[0][0]+":"+str(i)+":"+str(j)+":"+"000"
-
-    for k in range(max_people):
-        x = float(pre_transform[0][pre_features*k+1])
-        y = float(pre_transform[0][pre_features*k+2])
-
-        [x_proj, y_proj] = [b0*(x-a) + b1*(y-b), b1*(x-a) - b0*(y-b)]
-        post_transform[0][post_features*k+1:post_features*k+3] = [x_proj, y_proj]
-
-        for m in range(features[1]):
-            tx = np.cos(float(pre_transform[0][pre_features*k+3+m]))
-            ty = np.sin(float(pre_transform[0][pre_features*k+3+m]))
-            [tx_proj, ty_proj] = [b0*tx + b1*ty, b1*tx - b0*ty]
-            post_transform[0][post_features*k+3+2*m:post_features*k+3+2*(m+1)] = [tx_proj, ty_proj]
-
-        post_transform[0][post_features*k+3+2*features[1]:post_features*(k+1)] = pre_transform[0][pre_features*k+3+features[1]:pre_features*(k+1)]
-
-    return post_transform
-
-def augment(pre_transform, j, k, max_people, features):
-    post_features = features[0] + 2*features[1] + features[2]
-    augment_transform = transform(pre_transform, j, k, max_people, features)
-    augment_transform[0][0]=augment_transform[0][0][:-1]+"1"
-
-    for i in range(max_people):
-        for j in range(1+features[1]):
-            augment_transform[0][post_features*i+2*(j+1)] = str(-float(augment_transform[0][post_features*i+2*(j+1)]))
-
-    return augment_transform
-
-
-def process_frame(X_frame, Y_frame, max_people, features):
+def process_frame(X_frame, Y_frame, max_people, features, func=utils.transform):
     pre_features = features[0] + features[1] + features[2]
     post_features = features[0] + 2*features[1] + features[2]
 
     people = int((np.where(X_frame=="fake")[0][0]-1)/(pre_features+1))
-    points = 2*people*(people-1)
+    points = people*(people-1)
 
     pre_transform = np.empty(shape=(1, 1+max_people*pre_features), dtype="U50")
     X = np.empty(shape=(points, 1+max_people*post_features), dtype="U50")
     Y = np.empty(shape=(points, 2), dtype="U50")
 
-    times = [0, 0]
-    times_pos = 0
-    pos = 0
 
     combinations = [[p1, p2] for p1 in range(people) for p2 in range(people) if p1!=p2]
+    pos = 0
 
-    for func in [transform, augment]:
-        times[times_pos] = pos
-        times_pos += 1
+    for j, k in combinations:
+        pre_transform[0][0] = X_frame[0]
+        count = 0
 
-        for j, k in combinations:
-            pre_transform[0][0] = X_frame[0]
-            count = 0
-
-            for m in range(people):
-                if(m!=j and m!=k):
-                    pre_transform[0][pre_features*count+1:pre_features*(count+1)+1] = X_frame[(pre_features+1)*m+2:(pre_features+1)*(m+1)+1]
-                    count += 1
-
-            for m in range(people, max_people):
-                rand_p = random.randint(0, people-3) #includes final number
-                pre_transform[0][pre_features*count+1:pre_features*(count+1)+1] = pre_transform[0][pre_features*rand_p+1:pre_features*(rand_p+1)+1]
+        for m in range(people):
+            if(m!=j and m!=k):
+                pre_transform[0][pre_features*count+1:pre_features*(count+1)+1] = X_frame[(pre_features+1)*m+2:(pre_features+1)*(m+1)+1]
                 count += 1
 
-            pre_transform[0][pre_features*count+1:pre_features*(count+1)+1] = X_frame[(pre_features+1)*j+2:(pre_features+1)*(j+1)+1]
-            pre_transform[0][pre_features*(count+1)+1:pre_features*(count+2)+1] = X_frame[(pre_features+1)*k+2:(pre_features+1)*(k+1)+1]
+        for m in range(people, max_people):
+            rand_p = random.randint(0, people-3) #includes final number
+            pre_transform[0][pre_features*count+1:pre_features*(count+1)+1] = pre_transform[0][pre_features*rand_p+1:pre_features*(rand_p+1)+1]
+            count += 1
 
-            post_transform = func(pre_transform, j, k, max_people, features)
+        pre_transform[0][pre_features*count+1:pre_features*(count+1)+1] = X_frame[(pre_features+1)*j+2:(pre_features+1)*(j+1)+1]
+        pre_transform[0][pre_features*(count+1)+1:pre_features*(count+2)+1] = X_frame[(pre_features+1)*k+2:(pre_features+1)*(k+1)+1]
 
-            affinity = 1 if Y_frame[2*(j+1)]==Y_frame[2*(k+1)] else 0
+        post_transform = func(pre_transform, j, k, max_people, features)
+        affinity = 1 if Y_frame[2*(j+1)]==Y_frame[2*(k+1)] else 0
 
-            X[pos] = post_transform
-            Y[pos] = [X[pos][0], affinity]
-            pos += 1
+        X[pos] = post_transform
+        Y[pos] = [X[pos][0], affinity]
+        pos += 1
 
-    return X, Y, times, pos
+    return X, Y, pos
 
 def build_dataset(X_old, Y_old, max_people, features, clean_path):
     pre_features = features[0] + features[1] + features[2]
@@ -173,15 +118,13 @@ def build_dataset(X_old, Y_old, max_people, features, clean_path):
 
     pos = 0
     for i in range(len(X_old)):
-        X_temp, Y_temp, times_temp, points_temp = process_frame(X_old[i], Y_old[i], max_people, features)
+        X_temp, Y_temp, points_temp = process_frame(X_old[i], Y_old[i], max_people, features, utils.transform)
+        X[pos:pos+points_temp], Y[pos:pos+points_temp], times[times_pos] = X_temp, Y_temp, pos
+        pos, times_pos = pos + points_temp, times_pos + 1
 
-        X[pos:pos+points_temp] = X_temp
-        Y[pos:pos+points_temp] = Y_temp
-        times[times_pos] = times_temp[0] + pos
-        times[times_pos+1] = times_temp[1] + pos
-
-        pos += points_temp
-        times_pos += 2
+        X_temp, Y_temp, points_temp = process_frame(X_old[i], Y_old[i], max_people, features, utils.augment)
+        X[pos:pos+points_temp], Y[pos:pos+points_temp], times[times_pos] = X_temp, Y_temp, pos
+        pos, times_pos = pos + points_temp, times_pos + 1
 
     np.savetxt(clean_path + "/coordinates.txt", X, fmt='%s')
     np.savetxt(clean_path + "/affinities.txt", Y, fmt='%s')
@@ -233,12 +176,12 @@ def save_dataset(X, Y, times, max_people, features, processed_path):
     Y_train = Y_new[test:train]
     Y_val = Y_new[train:val]
 
-    dump(processed_path + '/test.p', ([X_group_test, X_pairs_test], Y_test, times_test))
-    dump(processed_path + '/train.p', ([X_group_train, X_pairs_train], Y_train, times_train))
-    dump(processed_path + '/val.p', ([X_group_val, X_pairs_val], Y_val, times_val))
+    utils.dump(processed_path + '/test.p', ([X_group_test, X_pairs_test], Y_test, times_test))
+    utils.dump(processed_path + '/train.p', ([X_group_train, X_pairs_train], Y_train, times_train))
+    utils.dump(processed_path + '/val.p', ([X_group_val, X_pairs_val], Y_val, times_val))
 
 def main():
-    expanded = False
+    expanded = True
     if(expanded): folder = "cocktail_expanded"
     else: folder = "cocktail"
 

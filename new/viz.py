@@ -9,14 +9,14 @@ def predict(X_raw, Y_raw, max_people, features, model_path):
     pre_features = features[0] + features[1] + features[2]
     post_features = features[0] + 2 * features[1] + features[2]
 
-    X, Y, _, points = process_frame(X_raw, Y_raw, max_people, features)
-    people = int(np.sqrt(points//2)) + 1
+    X, Y, points = process_frame(X_raw, Y_raw, max_people, features)
+    people = int(np.sqrt(points)) + 1
 
-    X_group = np.zeros(shape=(points//2, 1, max_people-2, post_features))
-    X_pairs = np.zeros(shape=(points//2, 1, 2, post_features))
-    Y_new = np.zeros(shape=(points//2, 1), dtype=np.int8)
+    X_group = np.zeros(shape=(points, 1, max_people-2, post_features))
+    X_pairs = np.zeros(shape=(points, 1, 2, post_features))
+    Y_new = np.zeros(shape=(points, 1), dtype=np.int8)
 
-    for i in range(points//2):
+    for i in range(points):
         X_group[i][0] = np.reshape(X[i][1:-2*post_features], newshape=(max_people-2, post_features))
         X_pairs[i][0] = np.reshape(X[i][-2*post_features:], newshape=(2, post_features))
         Y_new[i][0] = int(Y[i][1])
@@ -24,8 +24,6 @@ def predict(X_raw, Y_raw, max_people, features, model_path):
     model = keras.models.load_model(model_path+"/model.h5", custom_objects={'tf':tf , 'max_people':max_people})
     preds = model.predict([X_group, X_pairs])
 
-    print(preds.shape)
-    print(Y_new.shape)
     pred_groups = ds(preds, people)
     truth_groups = ds(Y_new, people)
 
