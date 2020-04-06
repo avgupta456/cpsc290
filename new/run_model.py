@@ -38,7 +38,7 @@ def test_model(model_path, max_people):
 model_path = "./models/cocktail_party/best_val_model.h5"
 max_people = 6
 
-test_model(model_path, max_people)
+#test_model(model_path, max_people)
 
 global_filters = [16, 128, 512]
 individual_filters = [32]
@@ -47,8 +47,8 @@ epochs = 600
 reg = 7.943282347242822e-05
 dropout = 0.15
 
-train, test, val = load_data("cocktail")
+train, test, val = utils.load_data("cocktail")
 model_path = "./models/cocktail_expanded/model1"
 
-train_and_save_model(global_filters, individual_filters, combined_filters,
+train_model.train_and_save_model(global_filters, individual_filters, combined_filters,
     train, val, test, model_path, epochs, reg, dropout)
