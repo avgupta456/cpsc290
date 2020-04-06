@@ -7,8 +7,8 @@ def calc_f1(X, Y, times, preds, thres):
         start, stop = int(times[i]), int(times[i+1])
         num_people = int(np.sqrt(stop-start))+1
 
-        pred = ds(Y[start:stop], num_people)
-        truth = ds(preds[start:stop], num_people)
+        pred = ds(preds[start:stop], num_people)
+        truth = ds(Y[start:stop], num_people)
 
         TF, FN, FP, P, R = indiv_f1(pred, truth, thres)
         results += np.array([P, R])

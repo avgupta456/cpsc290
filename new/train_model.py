@@ -197,7 +197,7 @@ def train_and_save_model(global_filters, individual_filters, combined_filters,
     early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=50)
     history = ValLoss(test) #custom callback implemented above
 
-    os.system('cls') #hides annoying warnings
+    #os.system('cls') #hides annoying warnings
     model.fit(X_train, Y_train, epochs=epochs, batch_size=1024,
         validation_data=(X_test, Y_test), callbacks=[history, early_stop])
 
