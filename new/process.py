@@ -8,7 +8,7 @@ def dump(path, data):
     with open(path, 'wb') as f:
         pickle.dump(data, f)
 
-def load_features(max_people, features, raw_path):
+def load_features(max_people, features, raw_path, viz_path):
     file1 = open(raw_path + "/groups.txt", "r")
     lines1 = file1.readlines()
     points = len(lines1)
@@ -59,6 +59,9 @@ def load_features(max_people, features, raw_path):
     file1.close()
     file2.close()
 
+    np.savetxt(viz_path + "/X.txt", X, fmt='%s')
+    np.savetxt(viz_path + "/Y.txt", Y, fmt='%s')
+
     return X, Y
 
 
@@ -105,6 +108,54 @@ def augment(pre_transform, j, k, max_people, features):
     return augment_transform
 
 
+def process_frame(X_frame, Y_frame, max_people, features):
+    pre_features = features[0] + features[1] + features[2]
+    post_features = features[0] + 2*features[1] + features[2]
+
+    people = int((np.where(X_frame=="fake")[0][0]-1)/(pre_features+1))
+    points = 2*people*(people-1)
+
+    pre_transform = np.empty(shape=(1, 1+max_people*pre_features), dtype="U50")
+    X = np.empty(shape=(points, 1+max_people*post_features), dtype="U50")
+    Y = np.empty(shape=(points, 2), dtype="U50")
+
+    times = [0, 0]
+    times_pos = 0
+    pos = 0
+
+    combinations = [[p1, p2] for p1 in range(people) for p2 in range(people) if p1!=p2]
+
+    for func in [transform, augment]:
+        times[times_pos] = pos
+        times_pos += 1
+
+        for j, k in combinations:
+            pre_transform[0][0] = X_frame[0]
+            count = 0
+
+            for m in range(people):
+                if(m!=j and m!=k):
+                    pre_transform[0][pre_features*count+1:pre_features*(count+1)+1] = X_frame[(pre_features+1)*m+2:(pre_features+1)*(m+1)+1]
+                    count += 1
+
+            for m in range(people, max_people):
+                rand_p = random.randint(0, people-3) #includes final number
+                pre_transform[0][pre_features*count+1:pre_features*(count+1)+1] = pre_transform[0][pre_features*rand_p+1:pre_features*(rand_p+1)+1]
+                count += 1
+
+            pre_transform[0][pre_features*count+1:pre_features*(count+1)+1] = X_frame[(pre_features+1)*j+2:(pre_features+1)*(j+1)+1]
+            pre_transform[0][pre_features*(count+1)+1:pre_features*(count+2)+1] = X_frame[(pre_features+1)*k+2:(pre_features+1)*(k+1)+1]
+
+            post_transform = func(pre_transform, j, k, max_people, features)
+
+            affinity = 1 if Y_frame[2*(j+1)]==Y_frame[2*(k+1)] else 0
+
+            X[pos] = post_transform
+            Y[pos] = [X[pos][0], affinity]
+            pos += 1
+
+    return X, Y, times, pos
+
 def build_dataset(X_old, Y_old, max_people, features, clean_path):
     pre_features = features[0] + features[1] + features[2]
     post_features = features[0] + 2*features[1] + features[2]
@@ -120,40 +171,17 @@ def build_dataset(X_old, Y_old, max_people, features, clean_path):
     X = np.empty(shape=(points, 1+max_people*post_features), dtype="U50")
     Y = np.empty(shape=(points, 2), dtype="U50")
 
-    pre_transform = np.empty(shape=(1, 1+max_people*pre_features), dtype="U50")
-
     pos = 0
     for i in range(len(X_old)):
-        people = int((np.where(X_old[i]=="fake")[0][0]-1)/(pre_features+1))
-        combinations = [[p1, p2] for p1 in range(people) for p2 in range(people) if p1!=p2]
-        for func in [transform, augment]:
-            times[times_pos] = pos
-            times_pos += 1
+        X_temp, Y_temp, times_temp, points_temp = process_frame(X_old[i], Y_old[i], max_people, features)
 
-            for j, k in combinations:
-                pre_transform[0][0] = X_old[i][0]
-                count = 0
+        X[pos:pos+points_temp] = X_temp
+        Y[pos:pos+points_temp] = Y_temp
+        times[times_pos] = times_temp[0] + pos
+        times[times_pos+1] = times_temp[1] + pos
 
-                for m in range(people):
-                    if(m!=j and m!=k):
-                        pre_transform[0][pre_features*count+1:pre_features*(count+1)+1] = X_old[i][(pre_features+1)*m+2:(pre_features+1)*(m+1)+1]
-                        count += 1
-
-                for m in range(people, max_people):
-                    rand_p = random.randint(0, people-3) #includes final number
-                    pre_transform[0][pre_features*count+1:pre_features*(count+1)+1] = pre_transform[0][pre_features*rand_p+1:pre_features*(rand_p+1)+1]
-                    count += 1
-
-                pre_transform[0][pre_features*count+1:pre_features*(count+1)+1] = X_old[i][(pre_features+1)*j+2:(pre_features+1)*(j+1)+1]
-                pre_transform[0][pre_features*(count+1)+1:pre_features*(count+2)+1] = X_old[i][(pre_features+1)*k+2:(pre_features+1)*(k+1)+1]
-
-                post_transform = func(pre_transform, j, k, max_people, features)
-
-                affinity = 1 if Y_old[i][2*(j+1)]==Y_old[i][2*(k+1)] else 0
-
-                X[pos] = post_transform
-                Y[pos] = [X[pos][0], affinity]
-                pos += 1
+        pos += points_temp
+        times_pos += 2
 
     np.savetxt(clean_path + "/coordinates.txt", X, fmt='%s')
     np.savetxt(clean_path + "/affinities.txt", Y, fmt='%s')
@@ -209,22 +237,27 @@ def save_dataset(X, Y, times, max_people, features, processed_path):
     dump(processed_path + '/train.p', ([X_group_train, X_pairs_train], Y_train, times_train))
     dump(processed_path + '/val.p', ([X_group_val, X_pairs_val], Y_val, times_val))
 
-expanded = False
-if(expanded): folder = "cocktail_expanded"
-else: folder = "cocktail"
+def main():
+    expanded = False
+    if(expanded): folder = "cocktail_expanded"
+    else: folder = "cocktail"
 
-raw_path = "./datasets/"+folder+"/raw"
-clean_path = "./datasets/"+folder+"/clean"
-processed_path = "./datasets/"+folder+"/processed"
+    raw_path = "./datasets/"+folder+"/raw"
+    viz_path = "./datasets/"+folder+"/viz"
+    clean_path = "./datasets/"+folder+"/clean"
+    processed_path = "./datasets/"+folder+"/processed"
 
-max_people = 20 #max people possible
+    max_people = 20 #max people possible
 
-#features[0] is space stored for x, y
-#features[1] is space stored for angles related to position
-#features[2] is space stored for all other features
-if(expanded): features = [2, 2, 0]
-else: features = [2, 1, 0]
+    #features[0] is space stored for x, y
+    #features[1] is space stored for angles related to position
+    #features[2] is space stored for all other features
+    if(expanded): features = [2, 2, 0]
+    else: features = [2, 1, 0]
 
-X_old, Y_old = load_features(max_people, features, raw_path)
-X, Y, times = build_dataset(X_old, Y_old, max_people, features, clean_path)
-save_dataset(X, Y, times, max_people, features, processed_path)
+    X_old, Y_old = load_features(max_people, features, raw_path, viz_path)
+    X, Y, times = build_dataset(X_old, Y_old, max_people, features, clean_path)
+    save_dataset(X, Y, times, max_people, features, processed_path)
+
+if __name__ == "__main__":
+    main()
