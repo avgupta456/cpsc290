@@ -181,22 +181,13 @@ def save_dataset(X, Y, times, max_people, features, processed_path):
     utils.dump(processed_path + '/val.p', ([X_group_val, X_pairs_val], Y_val, times_val))
 
 def main():
-    expanded = True
-    if(expanded): folder = "cocktail_expanded"
-    else: folder = "cocktail"
-
-    raw_path = "./datasets/"+folder+"/raw"
-    viz_path = "./datasets/"+folder+"/viz"
-    clean_path = "./datasets/"+folder+"/clean"
-    processed_path = "./datasets/"+folder+"/processed"
-
-    max_people = 20 #max people possible
-
-    #features[0] is space stored for x, y
-    #features[1] is space stored for angles related to position
-    #features[2] is space stored for all other features
-    if(expanded): features = [2, 2, 0]
-    else: features = [2, 1, 0]
+    max_people = constants.max_people
+    features = constants.features
+    
+    raw_path = constants.raw_path
+    viz_path = constants.viz_path
+    clean_path = constants.clean_path
+    processed_path = constants.processed_path
 
     X_old, Y_old = load_features(max_people, features, raw_path, viz_path)
     X, Y, times = build_dataset(X_old, Y_old, max_people, features, clean_path)

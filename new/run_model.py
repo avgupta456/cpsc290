@@ -10,13 +10,15 @@ from helper import utils
 import train_model
 
 
-def test_model(model_path, max_people):
-    model = keras.models.load_model(model_path, custom_objects={'tf':tf , 'max_people':max_people})
+def test_model(test_model_path, dataset, max_people):
+    model = keras.models.load_model(test_model_path, custom_objects={'tf':tf , 'max_people':max_people})
     model.summary()
 
-    train, test, val = utils.load_data("cocktail_party")
+    train, test, val = utils.load_data(dataset)
     for data in [train, test, val]:
         X, Y, times = data
+
+        '''
         for i in range(len(times)):
             times[i] = times[i].split(":")[0]+times[i].split(":")[3]
         #print(times)
@@ -28,6 +30,7 @@ def test_model(model_path, max_people):
 
         #print(new_times)
         times = new_times
+        '''
 
         preds = model.predict(X)
         mse = ((preds - Y)**2).mean(axis=None)
@@ -35,10 +38,11 @@ def test_model(model_path, max_people):
         print(calc_f1(X, Y, times, preds, 2/3))
         print(calc_f1(X, Y, times, preds, 1))
 
-model_path = "./models/cocktail_party/best_val_model.h5"
-max_people = 6
+test_model_path = constants.test_model_path
+max_people = constants.max_people
+dataset = constants.dataset
 
-#test_model(model_path, max_people)
+test_model(test_model_path, dataset, max_people)
 
 global_filters = [16, 128, 512]
 individual_filters = [32]
@@ -47,8 +51,8 @@ epochs = 600
 reg = 7.943282347242822e-05
 dropout = 0.15
 
-train, test, val = utils.load_data("cocktail")
-model_path = "./models/cocktail_expanded/model1"
+train, test, val = utils.load_data(dataset)
+model_path = constants.model_path
 
 train_model.train_and_save_model(global_filters, individual_filters, combined_filters,
     train, val, test, model_path, epochs, reg, dropout)
