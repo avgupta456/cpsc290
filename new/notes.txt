@@ -1,8 +1,6 @@
 Todo:
 1. visualization
-2. centralized main.py file that sets the dataset, max_people, etc (done)
-3. transfer to google colab and actually finish compiling a model (done)
-4. model search (possibly genetic algorithm)
-5. implement folds
-6. documentation
-7. investigate lower f1 scores
+2. model search
+3. implement folds
+4. documentation
+5. investigate lower f1 scores

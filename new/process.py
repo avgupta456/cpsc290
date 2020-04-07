@@ -3,6 +3,7 @@ import random
 import re
 
 from helper import utils
+import constants
 
 def load_features(max_people, features, raw_path, viz_path):
     file1 = open(raw_path + "/groups.txt", "r")
@@ -132,58 +133,65 @@ def build_dataset(X_old, Y_old, max_people, features, clean_path):
 
     return X, Y, times
 
-def save_dataset(X, Y, times, max_people, features, processed_path):
-    new_times = []
-    for time in times:
-        new_times.append(float(time[0]))
-
+def save_dataset(X, Y, old_times, max_people, features, processed_path):
     post_features = features[0] + 2*features[1] + features[2]
     points = X.shape[0]
 
     X_group = np.zeros(shape=(points, 1, max_people-2, post_features))
     X_pairs = np.zeros(shape=(points, 1, 2, post_features))
     Y_new = np.zeros(shape=(points, 1), dtype=np.int8)
+    times = np.zeros(shape=(len(old_times), 1), dtype=np.int32)
+    for i in range(times.shape[0]): times[i]=float(old_times[i][0])
 
     for i in range(points):
         X_group[i][0] = np.reshape(X[i][1:-2*post_features], newshape=(max_people-2, post_features))
         X_pairs[i][0] = np.reshape(X[i][-2*post_features:], newshape=(2, post_features))
         Y_new[i][0] = int(Y[i][1])
 
-    test = int(0.20*points)
-    while(test not in new_times): test-=1
-    test_index = new_times.index(test)
-    times_test = new_times[:test_index]
+    folds = []
+    data = []
+    for i in range(5):
+        if(i==0): prev_index, prev_time_index = 0, 0
+        else: prev_index, prev_time_index = folds[-1]
 
-    train = int(0.90*points)
-    while(train not in new_times): treain -=1
-    train_index = new_times.index(train)
-    times_train = new_times[test_index:train_index]
-    for i in range(len(times_train)): times_train[i]-=test
+        index = int((i+1)/5*points)
+        while(not np.any(np.isin(times, index))): index-=1
+        time_index = np.where(times==index)[0][0]
 
-    val = points
-    times_val = new_times[train_index:]
-    for i in range(len(times_val)): times_val[i]-=train
+        if(i==4): index, time_index = X_group.shape[0], times.shape[0]
 
-    X_group_test = X_group[:test]
-    X_group_train = X_group[test:train]
-    X_group_val = X_group[train:val]
+        times_fold = times[prev_time_index:time_index]
+        X_group_fold = X_group[prev_index:index]
+        X_pairs_fold = X_pairs[prev_index:index]
+        Y_fold = Y_new[prev_index:index]
 
-    X_pairs_test = X_pairs[:test]
-    X_pairs_train = X_pairs[test:train]
-    X_pairs_val = X_pairs[train:val]
+        folds.append([index, time_index])
+        data.append([X_group_fold, X_pairs_fold, Y_fold, times_fold])
 
-    Y_test = Y_new[:test]
-    Y_train = Y_new[test:train]
-    Y_val = Y_new[train:val]
+    for i in range(5):
+        started = False
+        for j in range(5):
+            if(i!=j):
+                if(not started):
+                    X_group_fold, X_pairs_fold, Y_fold, times_fold = data[j]
+                    started = True
+                else:
+                    X_group_fold = np.append(X_group_fold, data[j][0], axis=0)
+                    X_pairs_fold = np.append(X_pairs_fold, data[j][1], axis=0)
+                    Y_fold = np.append(Y_fold, data[j][2], axis=0)
+                    times_fold = np.append(times_fold, data[j][3], axis=0)
 
-    utils.dump(processed_path + '/test.p', ([X_group_test, X_pairs_test], Y_test, times_test))
-    utils.dump(processed_path + '/train.p', ([X_group_train, X_pairs_train], Y_train, times_train))
-    utils.dump(processed_path + '/val.p', ([X_group_val, X_pairs_val], Y_val, times_val))
+        #if not os.path.isdir(processed_path+"/fold"+str(i)): os.makedirs(model_path)
+        #utils.dump(processed_path + "/fold"+str(i)+"/test.p")
+
+    #utils.dump(processed_path + '/test.p', ([X_group_test, X_pairs_test], Y_test, times_test))
+    #utils.dump(processed_path + '/train.p', ([X_group_train, X_pairs_train], Y_train, times_train))
+    #utils.dump(processed_path + '/val.p', ([X_group_val, X_pairs_val], Y_val, times_val))
 
 def main():
     max_people = constants.max_people
     features = constants.features
-    
+
     raw_path = constants.raw_path
     viz_path = constants.viz_path
     clean_path = constants.clean_path
