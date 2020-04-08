@@ -1,6 +1,7 @@
 import numpy as np
 import random
 import re
+import os
 
 from helper import utils
 import constants
@@ -133,60 +134,81 @@ def build_dataset(X_old, Y_old, max_people, features, clean_path):
 
     return X, Y, times
 
-def save_dataset(X, Y, old_times, max_people, features, processed_path):
+def split(input_data, splits):
+    count = len(splits)
+    points = input_data[0].shape[0]
+    times = input_data[3]
+
+    cutoffs = []
+    data = []
+    for i in range(count):
+        if(i==0): prev_index, prev_time_index = 0, 0
+        else: prev_index, prev_time_index = cutoffs[-1]
+
+        index = int(splits[i]*points)
+        while(index not in times): index-=1
+        time_index = np.where(times==index)[0][0]
+
+        if(i==count-1): index, time_index = points, times.shape[0]
+
+        X_group_fold = input_data[0][prev_index:index]
+        X_pair_fold = input_data[1][prev_index:index]
+        Y_fold = input_data[2][prev_index:index]
+
+        offset = np.ones(shape=(time_index-prev_time_index, 1))*prev_index
+        times_fold = input_data[3][prev_time_index:time_index] - offset
+
+        cutoffs.append([index, time_index])
+        data.append([X_group_fold, X_pair_fold, Y_fold, times_fold])
+
+    return data
+
+def create_folds(split_data):
+    num_folds = len(split_data)
+    folds = []
+
+    for i in range(num_folds):
+        started = False
+        for j in [x for x in range(num_folds) if x != i]:
+            if(not started):
+                X_group_fold, X_pairs_fold, Y_fold, times_fold = split_data[j]
+                started = True
+            else:
+                offset = np.ones(shape=split_data[j][3].shape)*X_group_fold.shape[0]
+                times_fold = np.append(times_fold, split_data[j][3]+offset, axis=0)
+                X_group_fold = np.append(X_group_fold, split_data[j][0], axis=0)
+                X_pairs_fold = np.append(X_pairs_fold, split_data[j][1], axis=0)
+                Y_fold = np.append(Y_fold, split_data[j][2], axis=0)
+
+        folds.append([X_group_fold, X_pairs_fold, Y_fold, times_fold])
+
+    return folds
+
+def save_dataset(X_old, Y_old, times_old, max_people, features, processed_path):
     post_features = features[0] + 2*features[1] + features[2]
-    points = X.shape[0]
+    points = X_old.shape[0]
 
     X_group = np.zeros(shape=(points, 1, max_people-2, post_features))
     X_pairs = np.zeros(shape=(points, 1, 2, post_features))
-    Y_new = np.zeros(shape=(points, 1), dtype=np.int8)
-    times = np.zeros(shape=(len(old_times), 1), dtype=np.int32)
-    for i in range(times.shape[0]): times[i]=float(old_times[i][0])
+    Y = np.zeros(shape=(points, 1), dtype=np.int8)
+    times = np.zeros(shape=(len(times_old), 1), dtype=np.int32)
+    for i in range(times.shape[0]): times[i]=float(times_old[i][0])
 
     for i in range(points):
-        X_group[i][0] = np.reshape(X[i][1:-2*post_features], newshape=(max_people-2, post_features))
-        X_pairs[i][0] = np.reshape(X[i][-2*post_features:], newshape=(2, post_features))
-        Y_new[i][0] = int(Y[i][1])
+        X_group[i][0] = np.reshape(X_old[i][1:-2*post_features], newshape=(max_people-2, post_features))
+        X_pairs[i][0] = np.reshape(X_old[i][-2*post_features:], newshape=(2, post_features))
+        Y[i][0] = int(Y_old[i][1])
 
-    folds = []
-    data = []
-    for i in range(5):
-        if(i==0): prev_index, prev_time_index = 0, 0
-        else: prev_index, prev_time_index = folds[-1]
+    data = split([X_group, X_pairs, Y, times], [0.2, 0.4, 0.6, 0.8, 1.0])
+    folds = create_folds(data)
+    for i in range(len(folds)):
+        train, test, val = split(folds[i], [0.7, 0.8, 1])
 
-        index = int((i+1)/5*points)
-        while(not np.any(np.isin(times, index))): index-=1
-        time_index = np.where(times==index)[0][0]
-
-        if(i==4): index, time_index = X_group.shape[0], times.shape[0]
-
-        times_fold = times[prev_time_index:time_index]
-        X_group_fold = X_group[prev_index:index]
-        X_pairs_fold = X_pairs[prev_index:index]
-        Y_fold = Y_new[prev_index:index]
-
-        folds.append([index, time_index])
-        data.append([X_group_fold, X_pairs_fold, Y_fold, times_fold])
-
-    for i in range(5):
-        started = False
-        for j in range(5):
-            if(i!=j):
-                if(not started):
-                    X_group_fold, X_pairs_fold, Y_fold, times_fold = data[j]
-                    started = True
-                else:
-                    X_group_fold = np.append(X_group_fold, data[j][0], axis=0)
-                    X_pairs_fold = np.append(X_pairs_fold, data[j][1], axis=0)
-                    Y_fold = np.append(Y_fold, data[j][2], axis=0)
-                    times_fold = np.append(times_fold, data[j][3], axis=0)
-
-        #if not os.path.isdir(processed_path+"/fold"+str(i)): os.makedirs(model_path)
-        #utils.dump(processed_path + "/fold"+str(i)+"/test.p")
-
-    #utils.dump(processed_path + '/test.p', ([X_group_test, X_pairs_test], Y_test, times_test))
-    #utils.dump(processed_path + '/train.p', ([X_group_train, X_pairs_train], Y_train, times_train))
-    #utils.dump(processed_path + '/val.p', ([X_group_val, X_pairs_val], Y_val, times_val))
+        dir = processed_path + "/fold"+str(i)
+        if not os.path.isdir(dir): os.makedirs(dir)
+        utils.dump(dir+"/train.p", train)
+        utils.dump(dir+"/test.p", test)
+        utils.dump(dir+"/val.p", val)
 
 def main():
     max_people = constants.max_people

@@ -1,6 +1,7 @@
 Todo:
-1. visualization
-2. model search
-3. implement folds
-4. documentation
-5. investigate lower f1 scores
+
+investigate lower f1 scores
+visualization
+model search
+documentation
+summer proposal
