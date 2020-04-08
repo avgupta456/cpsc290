@@ -165,14 +165,18 @@ def split(input_data, splits):
 
 def create_folds(split_data):
     num_folds = len(split_data)
-    folds = []
+    folds, out_folds = [], []
 
     for i in range(num_folds):
         started = False
-        for j in [x for x in range(num_folds) if x != i]:
-            if(not started):
+        for j in range(num_folds):
+            if(i==j):
+                out_folds.append(split_data[j])
+
+            elif(not started):
                 X_group_fold, X_pairs_fold, Y_fold, times_fold = split_data[j]
                 started = True
+
             else:
                 offset = np.ones(shape=split_data[j][3].shape)*X_group_fold.shape[0]
                 times_fold = np.append(times_fold, split_data[j][3]+offset, axis=0)
@@ -182,7 +186,7 @@ def create_folds(split_data):
 
         folds.append([X_group_fold, X_pairs_fold, Y_fold, times_fold])
 
-    return folds
+    return folds, out_folds
 
 def save_dataset(X_old, Y_old, times_old, max_people, features, processed_path):
     post_features = features[0] + 2*features[1] + features[2]
@@ -200,9 +204,11 @@ def save_dataset(X_old, Y_old, times_old, max_people, features, processed_path):
         Y[i][0] = int(Y_old[i][1])
 
     data = split([X_group, X_pairs, Y, times], [0.2, 0.4, 0.6, 0.8, 1.0])
-    folds = create_folds(data)
+    folds, out_folds = create_folds(data)
+
     for i in range(len(folds)):
-        train, test, val = split(folds[i], [0.7, 0.8, 1])
+        train, val = split(folds[i], [0.75, 0.25])
+        test = out_folds[i]
 
         dir = processed_path + "/fold"+str(i)
         if not os.path.isdir(dir): os.makedirs(dir)

@@ -1,6 +1,6 @@
 #centralized constants
 
-expanded = False
+expanded = True
 if(expanded): dataset = "cocktail_expanded"
 else: dataset = "cocktail"
 
