@@ -210,6 +210,10 @@ def save_dataset(X_old, Y_old, times_old, max_people, features, processed_path):
         train, val = split(folds[i], [0.75, 0.25])
         test = out_folds[i]
 
+        train = [[train[0], train[1]], train[2], train[3]]
+        test = [[test[0], test[1]], test[2], test[3]]
+        val = [[val[0], val[1]], val[2], val[3]]
+
         dir = processed_path + "/fold"+str(i)
         if not os.path.isdir(dir): os.makedirs(dir)
         utils.dump(dir+"/train.p", train)

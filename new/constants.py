@@ -1,13 +1,14 @@
 #centralized constants
 
-expanded = True
+expanded = False
 if(expanded): dataset = "cocktail_expanded"
 else: dataset = "cocktail"
 
 raw_path = "./datasets/"+dataset+"/raw"
 viz_path = "./datasets/"+dataset+"/viz"
 clean_path = "./datasets/"+dataset+"/clean"
-processed_path = "./datasets/"+dataset+"/processed"
+processed_path = "./datasets/"+dataset+"/processed/"
+data_path = "./datasets/"+dataset+"/processed/fold0"
 
 max_people = 20 #max people possible
 

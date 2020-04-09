@@ -8,13 +8,14 @@ import keras
 from helper.f1 import calc_f1
 from helper import utils
 import train_model
+import constants
 
 
-def test_model(test_model_path, dataset, max_people):
+def test_model(test_model_path, processed_path, max_people):
     model = keras.models.load_model(test_model_path, custom_objects={'tf':tf , 'max_people':max_people})
-    model.summary()
+    #model.summary()
 
-    train, test, val = utils.load_data(dataset)
+    train, test, val = utils.load_data(data_path)
     for data in [train, test, val]:
         X, Y, times = data
 
@@ -33,16 +34,16 @@ def test_model(test_model_path, dataset, max_people):
         '''
 
         preds = model.predict(X)
-        mse = ((preds - Y)**2).mean(axis=None)
-        print(mse)
         print(calc_f1(X, Y, times, preds, 2/3))
         print(calc_f1(X, Y, times, preds, 1))
 
 test_model_path = constants.test_model_path
 max_people = constants.max_people
-dataset = constants.dataset
 
-test_model(test_model_path, dataset, max_people)
+for i in range(5):
+    data_path = constants.processed_path+"/fold"+str(i)
+    test_model(test_model_path, data_path, max_people)
+    print()
 
 global_filters = [16, 128, 512]
 individual_filters = [32]
@@ -51,8 +52,10 @@ epochs = 600
 reg = 7.943282347242822e-05
 dropout = 0.15
 
-train, test, val = utils.load_data(dataset)
+train, test, val = utils.load_data(data_path)
 model_path = constants.model_path
 
+'''
 train_model.train_and_save_model(global_filters, individual_filters, combined_filters,
     train, val, test, model_path, epochs, reg, dropout)
+'''

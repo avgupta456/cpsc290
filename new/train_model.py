@@ -128,13 +128,15 @@ def build_model(reg_amt, drop_amt, max_people, num_features, global_filters, ind
         y = Dropout(drop_amt)(y)
         y = BatchNormalization()(y)
 
-    #y_0 = Lambda(lambda input: tf.slice(input, [0, 0, 0, 0], [-1, -1, 1, -1]))(y)
-    #y_1 = Lambda(lambda input: tf.slice(input, [0, 0, 1, 0], [-1, -1, 1, -1]))(y)
+    y_0 = Lambda(lambda input: tf.slice(input, [0, 0, 0, 0], [-1, -1, 1, -1]))(y)
+    y_1 = Lambda(lambda input: tf.slice(input, [0, 0, 1, 0], [-1, -1, 1, -1]))(y)
 
+    '''
     y = MaxPooling2D(name="dyad_pool", pool_size=[1, 2], strides=1, padding='valid')(y)
     y = Dropout(drop_amt)(y)
     y = BatchNormalization()(y)
     y_flat = Flatten()(y)
+    '''
 
     x = group_inputs
 
@@ -149,8 +151,11 @@ def build_model(reg_amt, drop_amt, max_people, num_features, global_filters, ind
     x = BatchNormalization()(x)
     x_flat = Flatten()(x)
 
-    #concat = Concatenate(name='concat')([x_flat, Flatten()(y_0), Flatten()(y_1)])
+    concat = Concatenate(name='concat')([x_flat, Flatten()(y_0), Flatten()(y_1)])
+
+    '''
     concat = Concatenate(name='concat')([x_flat, y_flat])
+    '''
 
     # Final MLP from paper
     for filters in combined_filters:
