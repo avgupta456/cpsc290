@@ -7,8 +7,7 @@ else: dataset = "cocktail"
 raw_path = "./datasets/"+dataset+"/raw"
 viz_path = "./datasets/"+dataset+"/viz"
 clean_path = "./datasets/"+dataset+"/clean"
-processed_path = "./datasets/"+dataset+"/processed/"
-data_path = "./datasets/"+dataset+"/processed/fold0"
+processed_path = "./datasets/"+dataset+"/processed"
 
 max_people = 20 #max people possible
 
@@ -18,5 +17,5 @@ max_people = 20 #max people possible
 if(expanded): features = [2, 2, 0]
 else: features = [2, 1, 0]
 
-test_model_path = "./models/cocktail/model.h5"
-model_path = "./models/cocktail_expanded/model1"
+test_model_path = "./models/cocktail/old/model.h5"
+model_path = "./models/"+dataset

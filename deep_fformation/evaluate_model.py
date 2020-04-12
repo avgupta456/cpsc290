@@ -93,8 +93,6 @@ if __name__ == "__main__":
     model_old = keras.models.load_model(args.model_path + "/val_fold_" + str(args.k_fold)
         + "/best_val_model.h5", custom_objects={'tf':tf , 'max_people':max_people})
 
-    model = keras.models.load_model('new_model.h5', custom_objects={'tf':tf , 'max_people':max_people})
-
     preds = model_old.predict(X)
 
     if args.F1: # calculate F1
