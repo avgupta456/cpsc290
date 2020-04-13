@@ -1,8 +1,0 @@
-normalized data: False
-global: [16, 128, 1024]
-individual: [32, 64]
-combined: [512]
-vector: None
-reg= 2.511886431509582e-09
-dropout= 0.1
-batch norm=True
