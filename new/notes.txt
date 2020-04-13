@@ -1,7 +1,6 @@
 Todo:
-
-investigate lower f1 scores
-visualization
-model search
-documentation
-summer proposal
+1. investigate lower f1 scores
+2. visualization
+3. model search
+4. documentation
+5. summer proposal

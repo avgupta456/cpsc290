@@ -17,5 +17,5 @@ max_people = 20 #max people possible
 if(expanded): features = [2, 2, 0]
 else: features = [2, 1, 0]
 
-test_model_path = "./models/cocktail/old/model.h5"
+test_model_path = "./models/tests/test0/cocktail/model.h5"
 model_path = "./models/"+dataset

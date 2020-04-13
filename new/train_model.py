@@ -210,7 +210,7 @@ def train_and_save_model(global_filters, individual_filters, combined_filters,
     history = ValLoss(test) #custom callback implemented above
 
     #os.system('cls') #hides annoying warnings
-    model.fit(X_train, Y_train, epochs=epochs, batch_size=1024,
+    model.fit(X_train, Y_train, epochs=epochs, batch_size=64,
         validation_data=(X_val, Y_val), callbacks=[history, early_stop])
 
     best_val_mses.append(history.best_val_mse)
