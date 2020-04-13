@@ -7,3 +7,4 @@ F1 = 0.61 for standard, 0.71 for expanded
 
 Todo:
 Increase train size and rerun
+Compile results from this test here
