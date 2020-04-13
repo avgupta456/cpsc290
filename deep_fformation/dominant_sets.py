@@ -92,3 +92,45 @@ def iterate_climb_learned(predictions, frame, n_people, thres, n_features):
 		allowed = np.multiply(x == False, allowed)
 
 	return groups
+
+# Groups according to the algorithm in "Recognizing F-Formations in the Open World"
+# https://ieeexplore.ieee.org/abstract/document/8673233
+def naive_group(predictions, frame, n_people, thres, n_features):
+	groups = []
+
+	A = learned_affinity(n_people, predictions, frame, n_features)
+
+	A = np.random.randn(n_people, n_people)
+	A = A > .5
+	for i in range(n_people):
+		A[i, i] = True
+
+	A = 1 * A
+	while np.sum(A) > 0:
+		most_overlap = -float("inf")
+		pos = (-1, -1)
+
+		for i in range(n_people-1):
+			B_i = A[i]
+			for j in range(i+1, n_people):
+				B_j = A[j]
+				overlap = B_i.dot(B_j)
+				
+				if overlap > most_overlap:
+					most_overlap = overlap
+					pos = (i, j)
+		if most_overlap <= 0:
+			break
+
+		group = (A[pos[0]] + A[pos[1]]) > .5
+		groups.append(group)
+		for i in range(n_people):
+			if group[i]:
+				A[i, :] = 0
+				A[:, i] = 0
+
+	return groups
+
+
+
+

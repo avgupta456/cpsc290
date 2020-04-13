@@ -13,8 +13,10 @@ from dominant_sets import *
 # Positions = matrix of features at times. Form of row: time, ID001, x, y, ....
 # ds_precision_thres = threshold for ending iterative dominant sets matrix algorithm. standard value is 1e-5
 # n_features = number of features per person in Positions matrix, including name. eg (ID001, x, y, theta) is 4 features
-# non_resuable = flag to set. if True, don't can't get multiple true groups with the same guess if T low enough
-def F1_calc(group_thres, affinities, times, Groups_at_time, Positions, n_people, ds_iteration_thres, n_features, non_reusable=False):
+# non_resuable = flag to set. if True, can't get multiple true groups with the same guess if the accuracy meets the threshold 
+# 					for multiple GT groups with the same guess
+# dominant_sets = flag to set. if True, uses dominant sets algorithm. if False, uses a naive grouping algorithm
+def F1_calc(group_thres, affinities, times, Groups_at_time, Positions, n_people, ds_iteration_thres, n_features, non_reusable=False, dominant_sets=True):
 	T = group_thres
 	avg_results = np.array([0.0,0.0])
 
@@ -51,8 +53,12 @@ def F1_calc(group_thres, affinities, times, Groups_at_time, Positions, n_people,
 		frame_idx = list(Positions[:,0]).index(time)
 		frame = Positions[frame_idx]
 
-		bool_groups = iterate_climb_learned(predictions, frame, n_people, thres=ds_iteration_thres, n_features=n_features)
+		if dominant_sets:
+			bool_groups = iterate_climb_learned(predictions, frame, n_people, thres=ds_iteration_thres, n_features=n_features)
+		else:
+			bool_groups = naive_group(predictions, frame, n_people, thres=ds_iteration_thres, n_features=n_features)
 		guesses = group_names(bool_groups, n_people)
+
 		truth = Groups_at_time[time]
 		correctness = group_correctness(guesses, truth, T, non_reusable = non_reusable)
 
