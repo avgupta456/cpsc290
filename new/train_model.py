@@ -38,8 +38,11 @@ class ValLoss(keras.callbacks.Callback):
             self.best_val_mse = logs['val_mean_squared_error']
             self.best_epoch = epoch
 
-        f_1 = calc_f1(self.X, self.Y, self.times, self.model.predict(self.X), 1)[2]
-        f_2_3 = calc_f1(self.X, self.Y, self.times, self.model.predict(self.X), 2/3)[2]
+        preds = self.model.predict(self.X)
+        f_1 = calc_f1(self.X, self.Y, self.times, preds, 1)[2]
+        f_2_3 = calc_f1(self.X, self.Y, self.times, preds, 2/3)[2]
+        print(f_1, f_2_3)
+        print()
 
         for f_1, obj in [(f_1, self.val_f1), (f_2_3, self.val_f2_3)]:
             if f_1 > obj['best_f1']:
@@ -207,11 +210,11 @@ def train_and_save_model(global_filters, individual_filters, combined_filters,
 
     # train model val_mse
     early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=50)
-    history = ValLoss(test) #custom callback implemented above
+    history = ValLoss(val) #custom callback implemented above
 
     #os.system('cls') #hides annoying warnings
-    model.fit(X_train, Y_train, epochs=epochs, batch_size=64,
-        validation_data=(X_val, Y_val), callbacks=[history, early_stop])
+    model.fit(X_train, Y_train, epochs = epochs, batch_size = 1024,
+        validation_data = (X_val, Y_val), callbacks = [history, early_stop])
 
     best_val_mses.append(history.best_val_mse)
     best_val_f1.append(history.val_f1['best_f1'])

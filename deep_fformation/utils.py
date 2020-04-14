@@ -139,13 +139,17 @@ class ValLoss(keras.callbacks.Callback):
         self.train_mses = []
 
     def on_epoch_end(self, epoch, logs={}):
-        if logs['val_mean_squared_error'] < self.best_val_mse:
+        print(logs)
+        if logs['val_mse'] < self.best_val_mse:
             self.best_model = self.model
-            self.best_val_mse = logs['val_mean_squared_error']
+            self.best_val_mse = logs['val_mse']
             self.best_epoch = epoch
 
         (f1_two_thirds, _, _,), (f1_one, _, _) = predict(self.val_data, self.model, self.groups_at_time,
             dataset=self.dataset, positions=self.positions)
+
+        print(f1_one, f1_two_thirds)
+        print()
 
         for f1, obj in [(f1_one, self.val_f1_one_obj), (f1_two_thirds, self.val_f1_two_thirds_obj)]:
             if f1 > obj['best_f1']:
@@ -155,8 +159,8 @@ class ValLoss(keras.callbacks.Callback):
             obj['f1s'].append(f1)
         self.val_losses.append(logs['val_loss'])
         self.train_losses.append(logs['loss'])
-        self.val_mses.append(logs['val_mean_squared_error'])
-        self.train_mses.append(logs['mean_squared_error'])
+        self.val_mses.append(logs['val_mse'])
+        self.train_mses.append(logs['mse'])
 
 # saves the information in the model.history object to a .txt file
 def write_history(file_name, history, test):
@@ -346,5 +350,3 @@ if __name__ == "__main__":
         train, val, test, args.epochs, args.dataset,
         reg=args.reg, dropout=args.dropout, fold_num=args.fold, no_pointnet=args.no_pointnet,
         symmetric=args.symmetric)
-
-

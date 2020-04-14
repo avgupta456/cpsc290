@@ -1,3 +1,6 @@
+import datetime
+start = datetime.datetime.now()
+
 import numpy as np
 import math
 import os
@@ -33,6 +36,7 @@ for i in range(5):
     print()
 '''
 
+'''
 global_filters = [16, 256]
 individual_filters = [32, 32]
 combined_filters = [1024, 256]
@@ -40,11 +44,56 @@ combined_filters = [1024, 256]
 reg = 1e-7
 dropout = 0.13
 epochs = 200
+'''
 
-for i in range(5):
+global_filters = [64, 128]
+individual_filters = [16, 64]
+combined_filters = [512, 256]
+
+reg= 1e-07
+dropout= 0.1
+epochs = 600
+
+for i in range(5, 6):
     data_path = constants.processed_path+"/fold"+str(i)
     model_path = constants.model_path+"/fold"+str(i)
     train, test, val = utils.load_data(data_path)
 
+    X, Y, times = train
+    for i in range(len(times)):
+        times[i] = times[i].split(":")[0]+times[i].split(":")[3]
+
+    new_times = [0]
+    for i in range(len(times)):
+        if(times[i]!=times[new_times[-1]]):
+            new_times.append(i)
+
+    train = [X, Y, new_times]
+
+    X, Y, times = test
+    for i in range(len(times)):
+        times[i] = times[i].split(":")[0]+times[i].split(":")[3]
+
+    new_times = [0]
+    for i in range(len(times)):
+        if(times[i]!=times[new_times[-1]]):
+            new_times.append(i)
+
+    test = [X, Y, new_times]
+
+    X, Y, times = val
+    for i in range(len(times)):
+        times[i] = times[i].split(":")[0]+times[i].split(":")[3]
+
+    new_times = [0]
+    for i in range(len(times)):
+        if(times[i]!=times[new_times[-1]]):
+            new_times.append(i)
+
+    val = [X, Y, new_times]
+
     train_model.train_and_save_model(global_filters, individual_filters, combined_filters,
         train, val, test, model_path, epochs, reg, dropout)
+
+end = datetime.datetime.now()
+print("Total Time: " + str(end-start)+"\n")
