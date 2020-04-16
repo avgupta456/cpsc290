@@ -1,0 +1,14 @@
+global: [32, 256]
+individual: [16]
+combined: [512, 128, 64]
+reg= 7.943282347242822e-05
+dropout= 0.07
+
+best overall val loss: 0.10126110911369324
+best val losses per fold: [0.10126110911369324]
+
+best overall f1 1: 0.6815902578796562
+best f1 1s per fold: [0.6815902578796562]
+
+best overall f1 2/3: 0.9192210721868365
+best f1 2/3s per fold: [0.9192210721868365]
