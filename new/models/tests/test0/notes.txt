@@ -1,2 +1,0 @@
-Model from previous implementation, expanded for max_people=20
-Use this model when working with ROS, only works for cocktail
