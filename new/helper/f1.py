@@ -16,7 +16,9 @@ def calc_f1(X, Y, times, preds, thres):
     results /= (len(times) - 1)
     P, R = results
 
-    f1 = 2 * P * R / (P + R)
+    if P+R==0: f1 = 0
+    else: f1 = 2 * P * R / (P + R)
+    
     return P, R, f1
 
 ## calculates true positives, false negatives, and false positives

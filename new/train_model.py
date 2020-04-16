@@ -33,6 +33,7 @@ class ValLoss(keras.callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs={}):
         print(logs)
+
         if logs['val_mean_squared_error'] < self.best_val_mse:
             self.best_model = self.model
             self.best_val_mse = logs['val_mean_squared_error']
@@ -41,7 +42,7 @@ class ValLoss(keras.callbacks.Callback):
         preds = self.model.predict(self.X)
         f_1 = calc_f1(self.X, self.Y, self.times, preds, 1)[2]
         f_2_3 = calc_f1(self.X, self.Y, self.times, preds, 2/3)[2]
-        print(f_1, f_2_3)
+        print("F1 Scores: " + str(f_1) + " " + str(f_2_3))
         print()
 
         for f_1, obj in [(f_1, self.val_f1), (f_2_3, self.val_f2_3)]:

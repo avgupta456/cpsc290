@@ -54,11 +54,12 @@ reg= 1e-07
 dropout= 0.1
 epochs = 600
 
-for i in range(5, 6):
+for i in range(0, 5):
     data_path = constants.processed_path+"/fold"+str(i)
     model_path = constants.model_path+"/fold"+str(i)
     train, test, val = utils.load_data(data_path)
 
+    '''
     X, Y, times = train
     for i in range(len(times)):
         times[i] = times[i].split(":")[0]+times[i].split(":")[3]
@@ -91,6 +92,7 @@ for i in range(5, 6):
             new_times.append(i)
 
     val = [X, Y, new_times]
+    '''
 
     train_model.train_and_save_model(global_filters, individual_filters, combined_filters,
         train, val, test, model_path, epochs, reg, dropout)
