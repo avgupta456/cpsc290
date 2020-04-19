@@ -1,16 +1,16 @@
 from helper.ds import ds
 import numpy as np
 
-def calc_f1(X, Y, times, preds, thres):
+def calc_f1(X, Y, times, preds, T, thres):
     results = np.array([0.0, 0.0])
     for i in range(len(times)-1):
         start, stop = int(times[i]), int(times[i+1])
         num_people = int(np.sqrt(stop-start))+1
 
-        pred = ds(preds[start:stop], num_people)
-        truth = ds(Y[start:stop], num_people)
+        pred = ds(preds[start:stop], num_people, thres)
+        truth = ds(Y[start:stop], num_people, thres)
 
-        TF, FN, FP, P, R = indiv_f1(pred, truth, thres)
+        TF, FN, FP, P, R = indiv_f1(pred, truth, T)
         results += np.array([P, R])
 
     results /= (len(times) - 1)
@@ -18,7 +18,7 @@ def calc_f1(X, Y, times, preds, thres):
 
     if P+R==0: f1 = 0
     else: f1 = 2 * P * R / (P + R)
-    
+
     return P, R, f1
 
 ## calculates true positives, false negatives, and false positives

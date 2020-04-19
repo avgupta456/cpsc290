@@ -80,7 +80,7 @@ def process_groups(bool_groups, n_people):
 
 # Finds vectors x of people which maximize f. Then removes those people and repeats
 # main method
-def ds(preds, n_people):
+def ds(preds, n_people, thres=1e-5):
     allowed = np.ones(n_people)
     groups = []
 
@@ -91,7 +91,7 @@ def ds(preds, n_people):
         A[:,allowed == False] = 0
 
         if (np.sum(np.dot(allowed,A)) == 0): break
-        x = vector_climb(A, allowed, n_people, thres=1e-5)
+        x = vector_climb(A, allowed, n_people, thres=thres)
         if len(x) == 0: break
         groups.append(x)
 

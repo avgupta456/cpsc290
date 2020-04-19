@@ -23,18 +23,18 @@ def test_model(test_model_path, data_path, max_people):
         X, Y, times = data
 
         preds = model.predict(X)
-        print(calc_f1(X, Y, times, preds, 2/3))
-        print(calc_f1(X, Y, times, preds, 1))
+        print(calc_f1(X, Y, times, preds, 2/3, 1e-4))
+        print(calc_f1(X, Y, times, preds, 1, 1e-4))
+        print()
 
 test_model_path = constants.test_model_path
 max_people = constants.max_people
 
-'''
 for i in range(5):
     data_path = constants.processed_path+"/fold"+str(i)
+    print("Fold " + str(i))
     test_model(test_model_path, data_path, max_people)
     print()
-'''
 
 global_filters = [16, 256]
 individual_filters = [32, 32]
@@ -44,7 +44,7 @@ reg = 1e-7
 dropout = 0.13
 epochs = 200
 
-for i in range(0, 5):
+for i in range(0, 0):
     data_path = constants.processed_path+"/fold"+str(i)
     model_path = constants.model_path+"/fold"+str(i)
     train, test, val = utils.load_data(data_path)
