@@ -36,7 +36,6 @@ for i in range(5):
     print()
 '''
 
-'''
 global_filters = [16, 256]
 individual_filters = [32, 32]
 combined_filters = [1024, 256]
@@ -44,15 +43,6 @@ combined_filters = [1024, 256]
 reg = 1e-7
 dropout = 0.13
 epochs = 200
-'''
-
-global_filters = [64, 128]
-individual_filters = [16, 64]
-combined_filters = [512, 256]
-
-reg= 1e-07
-dropout= 0.1
-epochs = 600
 
 for i in range(0, 5):
     data_path = constants.processed_path+"/fold"+str(i)
