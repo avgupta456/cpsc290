@@ -1,7 +1,7 @@
 from helper.ds import ds
 import numpy as np
 
-def calc_f1(X, Y, times, preds, T, thres):
+def calc_f1(X, Y, times, preds, T, thres=1e-5):
     results = np.array([0.0, 0.0])
     for i in range(len(times)-1):
         start, stop = int(times[i]), int(times[i+1])

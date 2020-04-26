@@ -158,7 +158,7 @@ def build_model(reg_amt, drop_amt, max_people, num_features, global_filters, ind
     x = BatchNormalization()(x)
     x_flat = Flatten()(x)
 
-    concat = Concatenate(name='concat')([x_flat, Flatten()(y_0), Flatten()(y_1)])
+    concat = Concatenate(name='concat')([Flatten()(y_0), Flatten()(y_1)])
 
     '''
     concat = Concatenate(name='concat')([x_flat, y_flat])

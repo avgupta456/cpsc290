@@ -10,7 +10,7 @@ import keras
 
 from helper.f1 import calc_f1
 from helper import utils
-import train_model
+import train_model#2 as train_model
 import constants
 
 
@@ -30,7 +30,7 @@ def test_model(test_model_path, data_path, max_people):
 test_model_path = constants.test_model_path
 max_people = constants.max_people
 
-for i in range(5):
+for i in range(0):
     data_path = constants.processed_path+"/fold"+str(i)
     print("Fold " + str(i))
     test_model(test_model_path, data_path, max_people)
@@ -44,45 +44,10 @@ reg = 1e-7
 dropout = 0.13
 epochs = 200
 
-for i in range(0, 0):
+for i in range(1):
     data_path = constants.processed_path+"/fold"+str(i)
     model_path = constants.model_path+"/fold"+str(i)
     train, test, val = utils.load_data(data_path)
-
-    '''
-    X, Y, times = train
-    for i in range(len(times)):
-        times[i] = times[i].split(":")[0]+times[i].split(":")[3]
-
-    new_times = [0]
-    for i in range(len(times)):
-        if(times[i]!=times[new_times[-1]]):
-            new_times.append(i)
-
-    train = [X, Y, new_times]
-
-    X, Y, times = test
-    for i in range(len(times)):
-        times[i] = times[i].split(":")[0]+times[i].split(":")[3]
-
-    new_times = [0]
-    for i in range(len(times)):
-        if(times[i]!=times[new_times[-1]]):
-            new_times.append(i)
-
-    test = [X, Y, new_times]
-
-    X, Y, times = val
-    for i in range(len(times)):
-        times[i] = times[i].split(":")[0]+times[i].split(":")[3]
-
-    new_times = [0]
-    for i in range(len(times)):
-        if(times[i]!=times[new_times[-1]]):
-            new_times.append(i)
-
-    val = [X, Y, new_times]
-    '''
 
     train_model.train_and_save_model(global_filters, individual_filters, combined_filters,
         train, val, test, model_path, epochs, reg, dropout)
