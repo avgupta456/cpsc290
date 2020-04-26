@@ -1,0 +1,7 @@
+Template - F1 2/3, F1 1 (on test)
+Fold 0 - 0.83/0.59
+Fold 1 - 0.73/0.43
+Fold 2 - 0.63/0.19
+Fold 3 - 0.58/0.18
+Fold 4 - 0.83/0.42
+Overall - 0.72/0.36
