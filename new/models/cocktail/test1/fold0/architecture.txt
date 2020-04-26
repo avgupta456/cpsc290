@@ -1,0 +1,11 @@
+global: [1]
+individual: [1]
+combined: [1]
+reg= 1e-07
+dropout= 0.13
+
+best overall val loss: 0.17582477629184723
+
+best overall f1 1: 0.5196850393700787
+
+best overall f1 2/3: 0.8446255264603553
