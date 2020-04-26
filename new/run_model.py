@@ -10,7 +10,7 @@ import keras
 
 from helper.f1 import calc_f1
 from helper import utils
-import train_model#2 as train_model
+import train_model2 as train_model
 import constants
 
 
@@ -36,16 +36,16 @@ for i in range(0):
     test_model(test_model_path, data_path, max_people)
     print()
 
-global_filters = [16, 256]
-individual_filters = [32, 32]
-combined_filters = [1024, 256]
+global_filters = [1] #[16, 256]
+individual_filters = [1] #[32, 32]
+combined_filters = [1] #[1024, 256]
 
 reg = 1e-7
 dropout = 0.13
 epochs = 200
 
-for i in range(1):
-    data_path = constants.processed_path+"/fold"+str(i)
+for i in range(5):
+    data_path = constants.processed_path2+"/fold"+str(i)
     model_path = constants.model_path+"/fold"+str(i)
     train, test, val = utils.load_data(data_path)
 

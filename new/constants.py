@@ -8,6 +8,7 @@ raw_path = "./datasets/"+dataset+"/raw"
 viz_path = "./datasets/"+dataset+"/viz"
 clean_path = "./datasets/"+dataset+"/clean"
 processed_path = "./datasets/"+dataset+"/processed"
+processed_path2 = "./datasets/"+dataset+"/processed2"
 
 max_people = 20 #max people possible
 

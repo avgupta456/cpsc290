@@ -124,8 +124,11 @@ def build_model(reg_amt, drop_amt, max_people, num_features, global_filters, ind
 
     group_inputs = keras.layers.Input(shape=(1, max_people, num_features))
     pair_inputs = keras.layers.Input(shape=(1, 2, num_features))
+    dist_inputs = keras.layers.Input(shape=(1, 1, 1))
 
     reg = keras.regularizers.l2(reg_amt)
+
+    z = dist_inputs
 
     y = pair_inputs
 
@@ -137,13 +140,6 @@ def build_model(reg_amt, drop_amt, max_people, num_features, global_filters, ind
 
     y_0 = Lambda(lambda input: tf.slice(input, [0, 0, 0, 0], [-1, -1, 1, -1]))(y)
     y_1 = Lambda(lambda input: tf.slice(input, [0, 0, 1, 0], [-1, -1, 1, -1]))(y)
-
-    '''
-    y = MaxPooling2D(name="dyad_pool", pool_size=[1, 2], strides=1, padding='valid')(y)
-    y = Dropout(drop_amt)(y)
-    y = BatchNormalization()(y)
-    y_flat = Flatten()(y)
-    '''
 
     x = group_inputs
 
@@ -158,11 +154,8 @@ def build_model(reg_amt, drop_amt, max_people, num_features, global_filters, ind
     x = BatchNormalization()(x)
     x_flat = Flatten()(x)
 
-    concat = Concatenate(name='concat')([Flatten()(y_0), Flatten()(y_1)])
-
-    '''
-    concat = Concatenate(name='concat')([x_flat, y_flat])
-    '''
+    #concat = Concatenate(name='concat')([x_flat, Flatten()(y_0), Flatten()(y_1), Flatten()(z)])
+    concat = Flatten()(z)
 
     # Final MLP from paper
     for filters in combined_filters:
@@ -175,7 +168,7 @@ def build_model(reg_amt, drop_amt, max_people, num_features, global_filters, ind
     affinity = Dense(units=1, use_bias="True", kernel_regularizer=reg, activation=tf.nn.sigmoid,
         name='affinity', kernel_initializer="glorot_normal")(concat)
 
-    model = Model(inputs=[group_inputs, pair_inputs], outputs=affinity)
+    model = Model(inputs=[group_inputs, pair_inputs, dist_inputs], outputs=affinity)
 
     opt = keras.optimizers.Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, decay=1e-5, amsgrad=False, clipvalue=0.5)
     model.compile(optimizer=opt, loss="binary_crossentropy", metrics=['mean_squared_error'])
