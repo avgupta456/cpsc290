@@ -2,7 +2,7 @@
 
 Project developed during Spring 2020 for CPSC 290: Directed Research in Computer Science at Yale University, under the mentorship of Dr. Vazquez. 
 
-Implemented the DANTE group detection algorithm, as described here: https://arxiv.org/pdf/1907.12910.pdf. Made improvements to robustness and scalability of model (handling variable input size, improved speed, etc).
+Implemented the DANTE group detection algorithm, as described here: https://arxiv.org/pdf/1907.12910.pdf. Essentially, using deep learning to predict conversation groupings from the locations of a set of individuals. I made improvements to robustness and scalability of model (handling variable input size, improved speed, etc).
 
 # How to Implement
 
