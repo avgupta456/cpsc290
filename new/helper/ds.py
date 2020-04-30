@@ -43,11 +43,11 @@ def weight(S, i, A):
 				sum_weights += phi(R,j,i,A) * weight(R,j,A)
 				return sum_weights
 
-## optimization function
+# optimization function
 def f(x, A):
 	return np.dot(x.T, np.dot(A, x))
 
-## iteratively finds vector x which maximizes f
+# iteratively finds vector x which maximizes f
 def vector_climb(A, allowed, n_people, thres=1e-5):
 	x = np.random.uniform(0,1,n_people)
 	x = np.multiply(x, allowed)
@@ -69,6 +69,7 @@ def vector_climb(A, allowed, n_people, thres=1e-5):
 
 	return groups
 
+# converts boolean groups into desired format
 def process_groups(bool_groups, n_people):
     groups = []
     for bool_group in bool_groups:
@@ -79,7 +80,6 @@ def process_groups(bool_groups, n_people):
     return groups
 
 # Finds vectors x of people which maximize f. Then removes those people and repeats
-# main method
 def ds(preds, n_people, thres=1e-5):
     allowed = np.ones(n_people)
     groups = []

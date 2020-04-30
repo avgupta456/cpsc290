@@ -1,6 +1,0 @@
-Todo:
-1. investigate lower f1 scores
-2. visualization
-3. model search
-4. documentation
-5. summer proposal

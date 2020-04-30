@@ -13,6 +13,7 @@ from helper.f1 import calc_f1
 from helper.ds import ds
 import constants
 
+#callback to calculate metrics and store models
 class ValLoss(keras.callbacks.Callback):
 
     def __init__(self, val):
@@ -32,14 +33,17 @@ class ValLoss(keras.callbacks.Callback):
         self.val_mses = []
         self.train_mses = []
 
+    #runs after each epoch
     def on_epoch_end(self, epoch, logs={}):
         print(logs)
 
+        #if best model by val mse, save
         if logs['val_mean_squared_error'] < self.best_val_mse:
             self.best_model = self.model
             self.best_val_mse = logs['val_mean_squared_error']
             self.best_epoch = epoch
 
+        #every skip epochs, calc f1 stats
         skip = constants.skip
         if(epoch%skip==skip-1):
             preds = self.model.predict(self.X)
@@ -48,6 +52,7 @@ class ValLoss(keras.callbacks.Callback):
             print("F1 Scores: " + str(f_1) + " " + str(f_2_3))
             print()
 
+            #if best val f1, save model in appropriate objects
             for f_1, obj in [(f_1, self.val_f1), (f_2_3, self.val_f2_3)]:
                 if f_1 > obj['best_f1']:
                     obj['best_f1'] = f_1
@@ -55,11 +60,13 @@ class ValLoss(keras.callbacks.Callback):
                     obj['model'] = self.model
                 obj['f1s'].append(f_1)
 
+        #for logging
         self.val_losses.append(logs['val_loss'])
         self.train_losses.append(logs['loss'])
         self.val_mses.append(logs['val_mean_squared_error'])
         self.train_mses.append(logs['mean_squared_error'])
 
+#write history to text file
 def write_history(file_name, history, test):
     file = open(file_name, 'w+')
 
