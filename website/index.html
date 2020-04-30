@@ -5,13 +5,14 @@
 </head>
 <body>
   <h1>Improving Social Awareness and Group Detection through Deep Learning</h1>
-  <b>Abhijit Gupta</b>
+  <b>Author: Abhijit Gupta</b>
   <br> <br>
   <b>Advisor: Marynel Vazquez</b>
   <br>
   <h3>Abstract</h3>
-  <p>Test Text</p>
+  <p>Automatic group detection using computer vision is critical to surveillance systems, socially-aware mobile systems, interactive displays, and more. In the field of human-robot interaction, group detection is necessary for optimal verbal and non-verbal behavior. Explicitly modeled heuristics are often used to group people by spatial arrangement, but these methods do not generalize well to more complex scenarios. With increasingly available high-quality data inputs, powerful deep learning methods can improve the detection of conversational groups in comparison to prior approaches. The current state-of-the-art technique uses a Deep Affinity Network (DANTE) and the Dominant Set (DS) clustering algorithm to create group predictions. The previous implementation of the DANTE algorithm was designed to train on a pre-compiled dataset with six people in each frame and a limited input space. In preparation for training the model on live feed from the Shutter Robot, with variable people and an expanded feature space, I re-implemented the DANTE algorithm with an emphasis on scalability and robustness. This new implementation can handle variable people in each frame and scales easily as new input features are incorporated. Using previously collected body pose information for the Cocktail Party dataset, I trained a model on the expanded dataset as a proof of concept. The expanded dataset improved T=1 F1 scores from 0.58 to 0.69 and T=⅔ F1 scores from 0.80 to 0.86.  Future directions include collecting and training on a new dataset using the Shutter Robot and fine tuning model structure and hyperparameters for increased performance.</p>
   <a href="proposal.pdf">Proposal</a>
   <a href="paper.pdf">Paper</a>
+  <a href="https://github.com/avgupta456/cpsc290">Code</a>
 </body>
 </html>
